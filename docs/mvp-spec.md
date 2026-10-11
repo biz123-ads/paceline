@@ -178,10 +178,19 @@ Nella v1 i dati restano **nel browser dell'utente** (IndexedDB). Per non dover r
 ## 9. Dopo l'MVP: roadmap verso il prodotto completo
 
 1. ~~Fondamenta~~ (CSV, tema chiaro, CI, test end-to-end e di accessibilità) ✓
-2. **Account e cloud** (Supabase): login, Postgres con Row Level Security, implementazione server dello storage, "importa i dati di questo browser nel tuo account".
-3. **Assistente AI a crediti** (sotto).
-4. **Stripe**: connettore dei dati (chiave in sola lettura) e acquisto dei pacchetti di crediti (Checkout).
-5. **Presentazione**: nome definitivo, landing, deploy, demo pubblica, README da portfolio.
+2. ~~Account e cloud~~ (Supabase): login con link via email, Postgres con Row Level Security, implementazione cloud dello storage, "sposta i dati di questo browser nel tuo account" ✓
+3. ~~Assistente AI a crediti~~ ✓ (sotto)
+4. ~~Stripe~~: import dei dati da chiave in sola lettura e acquisto dei pacchetti di crediti (Checkout + webhook) ✓
+5. **Presentazione**: ~~landing~~ ✓, ~~demo pubblica (`/demo`)~~ ✓, ~~README da portfolio~~ ✓; restano il nome definitivo e il deploy (servono gli account: vedi [setup.md](setup.md)).
+
+Tutti i servizi esterni si accendono con le variabili d'ambiente; senza, l'app funziona come prima (dati nel browser).
+
+**Semplificazione (11/10/2026).** L'interfaccia era troppo densa. Ora:
+- la pagina del progetto risponde a tre domande in ordine: *dove sei*, *dove vuoi arrivare*, *cosa serve* (con i numeri "e se…" e costi/cassa); Overview e Plan sono una pagina sola, le schede sono Overview · Data · Settings;
+- un nuovo progetto parte da un setup in 3 passi (nome, numeri dell'ultimo mese, obiettivo);
+- "Aggiungi mese" è una finestra con 2 campi obbligatori, il resto opzionale;
+- parole semplici ("monthly revenue", "customers who leave") con un "?" che spiega MRR, churn, runway;
+- l'import mostra solo ciò che funziona: foglio di calcolo (CSV) e Stripe; il catalogo di fonti "in arrivo" è stato tolto.
 
 ## 10. Assistente AI a crediti (fase 3)
 
@@ -196,7 +205,7 @@ Nella v1 i dati restano **nel browser dell'utente** (IndexedDB). Per non dover r
 **Modello.** Claude Opus 5.5 (`claude-opus-5-5`, 4 $ / 20 $ per milione di token in ingresso/uscita al 10/2026). Prompt di sistema e dati del progetto in cache per abbassare il costo delle domande successive. Un modello più economico (Sonnet 5.5 / Haiku 5.5) è una scelta da fare dopo aver misurato qualità e margini.
 
 **Crediti.**
-- Si comprano a pacchetti (fase 4, Stripe Checkout). Alla registrazione un piccolo bonus gratuito per provare (utile anche per la demo).
+- Si comprano a pacchetti (fase 4, Stripe Checkout). Alla registrazione un piccolo bonus gratuito per provare (10 crediti; utile anche per la demo).
 - Prezzo per tipo di domanda, mostrato prima di inviare: domanda normale = 1 credito, domanda con ricerca web = più crediti. Limiti fissi per richiesta (token in uscita, numero di ricerche) così ogni domanda ha un costo massimo noto.
 - Il prezzo dei crediti si fissa **dopo aver misurato** il costo reale medio per domanda (log di `usage` per ogni risposta), con un margine.
 - **Registro crediti a movimenti** (`credit_ledger`: id, user_id, delta intero, motivo `signup_bonus` / `purchase` / `chat` / `refund`, riferimento, data). Il saldo è la somma. I crediti si **riservano** prima della chiamata e si **restituiscono** se la risposta fallisce.

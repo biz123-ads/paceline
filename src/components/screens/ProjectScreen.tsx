@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { Assumptions, Goal } from "@/domain";
 import type { ProjectData } from "@/components/data/hooks";
 import { MrrChart } from "@/components/charts/MrrChart";
@@ -431,6 +431,7 @@ function LeverInput({
   /** The value from the data, offered when the user changed it. */
   original?: string;
 }) {
+  const id = useId();
   const [draft, setDraft] = useState(value);
   const [invalid, setInvalid] = useState(false);
   const [seen, setSeen] = useState(value);
@@ -453,36 +454,38 @@ function LeverInput({
 
   return (
     <div>
-      <label className="block">
-        <Label>{label}</Label>
-        <div className="relative mt-1.5">
-          {prefix && (
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-faint">
-              {prefix}
-            </span>
+      <div className="flex items-center text-xs text-muted">
+        <label htmlFor={id}>{label}</label>
+        <Hint term={label.toLowerCase()}>{hint}</Hint>
+      </div>
+      <div className="relative mt-1.5">
+        {prefix && (
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-faint">
+            {prefix}
+          </span>
+        )}
+        <TextInput
+          id={id}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+          inputMode="decimal"
+          aria-invalid={invalid}
+          className={cx(
+            "num",
+            prefix && "pl-7",
+            suffix && "pr-7",
+            source === "user" && "border-accent/60 text-accent",
           )}
-          <TextInput
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-            inputMode="decimal"
-            aria-invalid={invalid}
-            className={cx(
-              "num",
-              prefix && "pl-7",
-              suffix && "pr-7",
-              source === "user" && "border-accent/60 text-accent",
-            )}
-          />
-          {suffix && (
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-faint">
-              {suffix}
-            </span>
-          )}
-        </div>
-      </label>
-      <p className="mt-1.5 text-[11px] text-faint">
+        />
+        {suffix && (
+          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-faint">
+            {suffix}
+          </span>
+        )}
+      </div>
+      <p className="mt-1.5 min-h-4 text-[11px] text-faint">
         {invalid ? (
           <span className="text-danger">Enter a number.</span>
         ) : source === "user" && onReset ? (
@@ -495,7 +498,6 @@ function LeverInput({
         ) : source ? (
           SOURCE_NOTES[source]
         ) : null}
-        {!invalid && <Hint term={label.toLowerCase()}>{hint}</Hint>}
       </p>
     </div>
   );

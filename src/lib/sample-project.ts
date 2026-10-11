@@ -2,6 +2,9 @@ import type { ExportBundle } from "@/domain";
 import { newId } from "./id";
 import { addMonths, currentPeriod, type Period } from "./period";
 
+/** Lets /demo find the sample again instead of adding a second copy. */
+export const SAMPLE_PROJECT_NAME = "Invoicely (sample)";
+
 /**
  * A realistic demo project so a first-time visitor can see every screen with
  * data before typing their own. It goes through importAll like a backup.
@@ -40,7 +43,7 @@ export function sampleProjectBundle(now: Date = new Date()): ExportBundle {
       {
         id: projectId,
         userId: null,
-        name: "Invoicely (sample)",
+        name: SAMPLE_PROJECT_NAME,
         description:
           "Invoicing for freelancers: send an invoice in 30 seconds, get paid by card. Sample data to explore the app; delete it any time.",
         kind: "saas",

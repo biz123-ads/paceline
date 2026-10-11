@@ -54,3 +54,25 @@ test("a term explains itself on focus", async ({ page }) => {
   await hint.focus();
   await expect(page.getByRole("tooltip").filter({ hasText: "cancel in a month" }).first()).toBeVisible();
 });
+
+test("the landing page opens the demo, once", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("See what it takes");
+  await page.getByRole("link", { name: "Try the demo" }).first().click();
+  await expect(page.getByRole("heading", { name: "Invoicely (sample)" })).toBeVisible();
+  const first = page.url();
+
+  // A second visit reopens the same project instead of adding a copy.
+  await page.goto("/demo");
+  await expect(page.getByRole("heading", { name: "Invoicely (sample)" })).toBeVisible();
+  expect(page.url()).toBe(first);
+  await page.goto("/projects");
+  await expect(page.getByRole("heading", { name: "Invoicely (sample)", level: 2 })).toHaveCount(1);
+});
+
+test("without accounts set up, sign-in explains where data lives", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.getByText("Accounts are not set up on this copy of the app")).toBeVisible();
+  const status = await (await page.request.get("/api/status")).json();
+  expect(status).toEqual({ accounts: false, assistant: false, creditSales: false });
+});

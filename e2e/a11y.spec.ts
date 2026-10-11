@@ -17,6 +17,8 @@ async function audit(page: Page, where: string) {
 for (const theme of ["dark", "light"] as const) {
   test(`every screen passes WCAG AA checks (${theme})`, async ({ page }) => {
     await page.addInitScript((t) => localStorage.setItem("projectpulse:theme", t), theme);
+    await page.goto("/");
+    await audit(page, "landing");
     await page.goto("/projects");
     await expect(page.getByText("Where is your project heading?")).toBeVisible();
     await audit(page, "empty projects");
@@ -37,5 +39,7 @@ for (const theme of ["dark", "light"] as const) {
     await audit(page, "setup");
     await page.goto("/settings");
     await audit(page, "settings");
+    await page.goto("/login");
+    await audit(page, "sign in");
   });
 }

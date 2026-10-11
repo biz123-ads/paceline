@@ -79,4 +79,6 @@ test("no page scrolls sideways", async ({ page }) => {
   await check("Data with every column");
   await page.goto("/projects/new");
   await check("setup");
+  await page.goto("/");
+  await check("landing");
 });
