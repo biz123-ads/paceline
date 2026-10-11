@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Dark only for now; a light theme only needs to redefine
+ * these variables (e.g. under [data-theme="light"]).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  /* Black, white and greys carry everything. */
+  --background: #0a0a0a;
+  --sidebar: #0d0d0d;
+  --surface: #121212;
+  --surface-2: #181818;
+  --surface-3: #232323;
+  --border: #1f1f1f;
+  --border-strong: #2e2e2e;
+  --foreground: #f2f2f2;
+  --muted: #8c8c8c;
+  --faint: #5a5a5a;
+  /* Blue only for the special details: goal, projection, your own values. */
+  --accent: #4d8ef7;
+  --accent-soft: rgb(77 142 247 / 0.14);
+  /* Red only for errors and destructive actions. */
+  --danger: #e5484d;
+  --danger-soft: rgb(229 72 77 / 0.12);
+  /* Chart */
+  --chart-actual: #e6e6e6;
+  --chart-track: #171717;
+  --chart-plan: #7a7a7a;
+  --chart-axis: #5f5f5f;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-chart-actual: var(--chart-actual);
+  --color-chart-plan: var(--chart-plan);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Numbers line up in columns. */
+.num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: rgb(255 255 255 / 0.18);
+}
+
+/* Recharts draws a focus outline on click; the chart is not keyboard-driven. */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
 }

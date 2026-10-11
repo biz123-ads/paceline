@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ProjectPulse (provisional name)
 
-## Getting Started
+Track your SaaS or side project and plan the way to a goal: project details,
+monthly numbers (MRR, customers, costs), and what it takes to reach a target
+like "€10k MRR by next year" (customers needed, churn, price, runway).
 
-First, run the development server:
+Full MVP scope and decisions: [docs/mvp-spec.md](docs/mvp-spec.md).
+
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- Zod for validation, Dexie (IndexedDB) for local storage, Recharts for charts
+- Vitest for tests
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm test` | Unit tests (once) |
+| `npm run test:watch` | Unit tests in watch mode |
+| `npm run typecheck` | Generate route types, then `tsc --noEmit` |
+| `npm run lint` | ESLint |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/          Routes (/, /projects/new, /projects/[id], …/plan, …/data,
+                …/details, /settings); each page renders a screen component
+  components/   UI: screens/, project/, charts/, data/ (storage hooks), ui.tsx
+  config/       App name and constants (rename the product in config/app.ts)
+  domain/       Zod schemas and types: project, snapshot, goal, assumptions, bundle
+  plan/         Plan engine: pure functions, measured values, tests
+  lib/          Small helpers (months/periods, ids, formatting, sample project)
+  storage/      Storage interfaces + local IndexedDB implementation
+docs/           Specs and decisions
+```
 
-## Learn More
+## Key rules
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **No accounts in v1.** Data lives in the user's browser. All reads and writes
+  go through `src/storage` so a server-backed implementation can replace the
+  local one when authentication arrives.
+- **Money is integer cents**, in the project's currency. Never floats.
+- **Months are `YYYY-MM` strings** (`src/lib/period.ts`).
+- **Derive, don't store:** the plan and derived metrics are computed from
+  snapshots, the goal and the levers, never saved.
+- **Plan, not prediction:** real months and plan lines always look different
+  (bars vs dashed lines); values that are not measured are labelled.
+- IDs are UUIDs generated on the client.
