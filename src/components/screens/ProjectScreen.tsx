@@ -674,7 +674,8 @@ function WhatIf({ data, plan }: { data: ProjectData; plan: PlanResult }) {
           label="Customers who leave each month"
           hint={GLOSSARY.churn}
           suffix="%"
-          value={formatNumber(levers.churnRate.value * 100, 2)}
+          // Same precision as the rest of the page, unless the user typed more.
+          value={formatNumber(levers.churnRate.value * 100, levers.churnRate.source === "user" ? 2 : 1)}
           source={levers.churnRate.source}
           parse={parsePercent}
           onSave={(v) => set({ monthlyChurnRate: v })}

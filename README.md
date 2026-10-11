@@ -1,4 +1,4 @@
-# ProjectPulse
+# Paceline
 
 **See what it takes to reach your revenue goal.** A planning tool for founders
 of small SaaS products and apps: put in your monthly revenue and paying
@@ -8,17 +8,18 @@ today's pace.
 
 ![The project page: where you are, where you want to go, what it takes](docs/screenshots/project.png)
 
-> *ProjectPulse* is a provisional name: it lives in one constant,
-> [`src/config/app.ts`](src/config/app.ts).
-
 ## What it does
 
 - **One page, three questions.** *Where you are* (revenue, customers, what each
   pays, how many leave), *where you want to go* (a goal with a plan line to
   compare every month against), *what it takes* (new customers needed per
   month, where growth stalls, runway and break-even).
+- **What moves it most.** Each lever (price, new customers, churn) made 10%
+  better, one at a time, ranked by how much revenue it adds by the deadline.
 - **"What if" numbers.** Change price, churn or new customers per month and
   watch the date move. One click goes back to the measured values.
+- **Costs and cash.** Runway from costs and cash on hand, and the month
+  revenue covers costs at the current pace.
 - **A plan, not a prediction.** Every number is arithmetic on months the user
   entered; values that aren't measured are labelled as guesses; real months
   (bars) and projections (dashed lines) never look alike.

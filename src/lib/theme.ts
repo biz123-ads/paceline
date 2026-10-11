@@ -5,6 +5,7 @@
 export const THEME_PREFERENCES = ["dark", "light", "system"] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
+/** Like LOCAL_DB_NAME, independent from APP_NAME so a rename keeps the choice. */
 export const THEME_STORAGE_KEY = "projectpulse:theme";
 const CHANGE_EVENT = "projectpulse:theme-change";
 

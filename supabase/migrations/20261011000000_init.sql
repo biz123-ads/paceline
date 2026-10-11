@@ -1,4 +1,4 @@
--- ProjectPulse: accounts, projects and AI credits.
+-- Paceline: accounts, projects and AI credits.
 --
 -- Every table carries user_id and Row Level Security: a signed-in user reads
 -- and writes only their own rows, straight from the browser. The credit
