@@ -59,4 +59,10 @@ test("no page scrolls sideways", async ({ page }) => {
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(scrollWidth, `${tab} is wider than the screen`).toBeLessThanOrEqual(width);
   }
+  for (const path of ["/import", "/import/google-sheets", "/import/app-store"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(scrollWidth, `${path} is wider than the screen`).toBeLessThanOrEqual(width);
+  }
 });

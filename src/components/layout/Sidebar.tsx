@@ -8,6 +8,7 @@ import { useProjectSummaries } from "@/components/data/hooks";
 import { cx } from "@/components/ui";
 import {
   GridIcon,
+  ImportIcon,
   LogoMark,
   MenuIcon,
   PlusIcon,
@@ -93,7 +94,15 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         </NavLink>
       </div>
 
-      <div className="mt-2">
+      <div className="mt-2 flex flex-col gap-1">
+        <NavLink
+          href="/import"
+          icon={<ImportIcon />}
+          active={pathname === "/import" || pathname.startsWith("/import/")}
+          onNavigate={onNavigate}
+        >
+          Import
+        </NavLink>
         <NavLink
           href="/settings"
           icon={<SettingsIcon />}

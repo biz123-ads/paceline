@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from "react";
 import { metricSnapshotSchema, type MetricSnapshot, type Project } from "@/domain";
 import type { ProjectData } from "@/components/data/hooks";
@@ -380,12 +381,14 @@ function SourceTile({
   text,
   onClick,
   active,
+  href,
 }: {
   icon: ReactNode;
   title: string;
   text: string;
   onClick?: () => void;
   active?: boolean;
+  href?: string;
 }) {
   const body = (
     <>
@@ -397,6 +400,14 @@ function SourceTile({
     </>
   );
   const base = "flex items-start gap-3 rounded-xl border px-4 py-3 text-left";
+  const interactive = "transition-colors hover:border-border-strong hover:bg-surface-2";
+  if (href) {
+    return (
+      <Link href={href} className={cx(base, interactive, "border-border bg-surface")}>
+        {body}
+      </Link>
+    );
+  }
   return onClick ? (
     <button
       type="button"
@@ -404,7 +415,7 @@ function SourceTile({
       aria-pressed={active}
       className={cx(
         base,
-        "transition-colors hover:border-border-strong hover:bg-surface-2",
+        interactive,
         active ? "border-border-strong bg-surface-2" : "border-border bg-surface",
       )}
     >
@@ -416,7 +427,9 @@ function SourceTile({
 }
 
 function Data({ data }: { data: ProjectData }) {
-  const [importing, setImporting] = useState(false);
+  // The Import section links here with #import to open the importer.
+  // Data renders only in the browser, once the project has loaded.
+  const [importing, setImporting] = useState(() => window.location.hash === "#import");
   return (
     <div className="space-y-4">
       <p className="max-w-3xl text-sm leading-relaxed text-muted">
@@ -436,8 +449,9 @@ function Data({ data }: { data: ProjectData }) {
         />
         <SourceTile
           icon={<PlugIcon />}
-          title="Connect Stripe"
-          text="Coming soon: synced months land in this same table."
+          title="More sources"
+          text="Excel, Google Sheets, Stripe and others."
+          href="/import"
         />
       </div>
       {importing && (

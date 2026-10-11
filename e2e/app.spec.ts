@@ -17,6 +17,9 @@ test("no console errors across the app", async ({ page }) => {
     );
   }
   await page.goto("/settings");
+  await page.goto("/import");
+  await page.goto("/import/google-sheets");
+  await expect(page.getByLabel("Into project")).toBeVisible();
   await page.goto("/projects/new");
   await page.reload();
   expect(errors).toEqual([]);

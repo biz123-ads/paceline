@@ -32,5 +32,12 @@ for (const theme of ["dark", "light"] as const) {
     await audit(page, "new project");
     await page.goto("/settings");
     await audit(page, "settings");
+    await page.goto("/import");
+    await audit(page, "import");
+    for (const source of ["excel", "stripe"]) {
+      await page.goto(`/import/${source}`);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await audit(page, `import ${source}`);
+    }
   });
 }

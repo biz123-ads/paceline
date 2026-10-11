@@ -108,6 +108,25 @@ export const UploadIcon = (p: SVGProps<SVGSVGElement>) => (
   </Icon>
 );
 
+export const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M3 8.5 6.5 12 13 4.5" />
+  </Icon>
+);
+
+/** Data coming in: an arrow entering a tray. */
+export const ImportIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M9.5 2.5h3a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-3M2 8h8M7 5l3 3-3 3" />
+  </Icon>
+);
+
+export const ArrowLeftIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M13 8H3M6.5 4.5 3 8l3.5 3.5" />
+  </Icon>
+);
+
 /** Hand-typed numbers. */
 export const KeyboardIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}>
