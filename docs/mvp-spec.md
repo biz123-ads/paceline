@@ -174,3 +174,32 @@ Nella v1 i dati restano **nel browser dell'utente** (IndexedDB). Per non dover r
 - Alla registrazione: "importa i dati di questo browser nel tuo account".
 - Da subito: **esporta/importa JSON**, perché i dati nel browser si possono perdere (cache cancellata, altro dispositivo) e va detto chiaramente all'utente.
 - La tabella `user` e il campo `user_id` dei progetti restano nel modello, ma nella v1 non sono usati.
+
+## 9. Dopo l'MVP: roadmap verso il prodotto completo
+
+1. ~~Fondamenta~~ (CSV, tema chiaro, CI, test end-to-end e di accessibilità) ✓
+2. **Account e cloud** (Supabase): login, Postgres con Row Level Security, implementazione server dello storage, "importa i dati di questo browser nel tuo account".
+3. **Assistente AI a crediti** (sotto).
+4. **Stripe**: connettore dei dati (chiave in sola lettura) e acquisto dei pacchetti di crediti (Checkout).
+5. **Presentazione**: nome definitivo, landing, deploy, demo pubblica, README da portfolio.
+
+## 10. Assistente AI a crediti (fase 3)
+
+**Cosa fa.** Una chat nella pagina del progetto. Esempi: "cosa ne pensi del grafico?", "cosa frena la crescita?", "e se alzo il prezzo a 25 €?", "chi sono i miei competitor diretti con questo MRR?".
+
+**Come funziona (onestà come nel resto del prodotto):**
+- Il modello riceve i **dati** del progetto (mesi, obiettivo, leve, risultati del motore), non uno screenshot: più preciso e meno costoso.
+- I conti non li fa il modello: ha uno **strumento `run_plan`** che chiama il nostro motore con leve diverse ("e se…?"), così i numeri della chat coincidono con quelli dell'app.
+- Le domande sui competitor usano la **ricerca web con fonti citate**; senza fonti il modello non deve nominare concorrenti come fatti.
+- L'interfaccia dice chiaramente che i dati del progetto vengono inviati al fornitore AI.
+
+**Modello.** Claude Opus 5.5 (`claude-opus-5-5`, 4 $ / 20 $ per milione di token in ingresso/uscita al 10/2026). Prompt di sistema e dati del progetto in cache per abbassare il costo delle domande successive. Un modello più economico (Sonnet 5.5 / Haiku 5.5) è una scelta da fare dopo aver misurato qualità e margini.
+
+**Crediti.**
+- Si comprano a pacchetti (fase 4, Stripe Checkout). Alla registrazione un piccolo bonus gratuito per provare (utile anche per la demo).
+- Prezzo per tipo di domanda, mostrato prima di inviare: domanda normale = 1 credito, domanda con ricerca web = più crediti. Limiti fissi per richiesta (token in uscita, numero di ricerche) così ogni domanda ha un costo massimo noto.
+- Il prezzo dei crediti si fissa **dopo aver misurato** il costo reale medio per domanda (log di `usage` per ogni risposta), con un margine.
+- **Registro crediti a movimenti** (`credit_ledger`: id, user_id, delta intero, motivo `signup_bonus` / `purchase` / `chat` / `refund`, riferimento, data). Il saldo è la somma. I crediti si **riservano** prima della chiamata e si **restituiscono** se la risposta fallisce.
+- Lato server soltanto: chiave API mai nel browser, controllo del saldo e limite di richieste per utente.
+
+**Nota fiscale.** Vendere crediti con soldi veri richiede una posizione fiscale (in Italia partita IVA) oppure un *merchant of record* (es. Paddle, Lemon Squeezy) che gestisce l'IVA europea. Per il portfolio basta Stripe in modalità test; il passaggio a pagamenti reali si decide prima del lancio.
