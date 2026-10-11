@@ -196,14 +196,10 @@ export async function POST(request: Request) {
       // Nothing usable came back: give the credits back (not when the reader
       // left after part of the answer had already arrived).
       const leftEarly = request.signal.aborted && sentText;
-      if (outcome !== "answered" && !leftEarly) {
-        await admin.rpc("refund_credits", { p_reference: requestId });
-      }
-      const balance = await admin
-        .from("credit_ledger")
-        .select("delta")
-        .eq("user_id", user.id)
-        .then(({ data: rows }) => (rows ?? []).reduce((sum, r) => sum + r.delta, 0));
+      const refund = outcome !== "answered" && !leftEarly;
+      if (refund) await admin.rpc("refund_credits", { p_reference: requestId });
+      // reserve_credits returned the balance after taking this question's cost.
+      const balance = (reserved.data as number) + (refund ? cost : 0);
 
       // What it really cost, to price credits from measurements.
       const log = {

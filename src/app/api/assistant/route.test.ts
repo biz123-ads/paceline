@@ -46,9 +46,10 @@ vi.mock("@anthropic-ai/sdk", () => {
 
 const rpc = vi.fn(async (name: string, args: Record<string, unknown>) => {
   void args;
-  return name === "reserve_credits" && reserveFails
-    ? { error: { message: "insufficient_credits" } }
-    : { error: null };
+  if (name !== "reserve_credits") return { data: null, error: null };
+  return reserveFails
+    ? { data: null, error: { message: "insufficient_credits" } }
+    : { data: 9, error: null };
 });
 const inserted: Record<string, unknown>[] = [];
 let reserveFails = false;
@@ -59,7 +60,6 @@ vi.mock("@/lib/supabase/server", () => ({
   supabaseAdmin: () => ({
     rpc,
     from: () => ({
-      select: () => ({ eq: () => Promise.resolve({ data: [{ delta: 10 }, { delta: -1 }] }) }),
       insert: async (row: Record<string, unknown>) => {
         inserted.push(row);
         return { error: null };
@@ -150,6 +150,7 @@ describe("POST /api/assistant", () => {
     replies.push(new Error("overloaded"));
     const { events } = await ask({});
     expect(events.map((e) => e.type)).toEqual(["error", "done"]);
+    expect(events.at(-1)).toEqual({ type: "done", balance: 10, charged: 0 });
     expect(rpc).toHaveBeenCalledWith("refund_credits", expect.anything());
     expect(inserted[0]).toMatchObject({ outcome: "failed", credits: 0 });
   });
