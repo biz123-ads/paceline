@@ -16,6 +16,7 @@ import {
   DeltaBadge,
   Notice,
   Segmented,
+  ScrollX,
   SegmentBar,
 } from "@/components/ui";
 import { ArrowRightIcon, PlusIcon } from "@/components/icons";
@@ -287,7 +288,7 @@ function RecentMonths({ data }: { data: ProjectData }) {
       {rows.length === 0 ? (
         <p className="text-sm text-muted">Nothing entered yet.</p>
       ) : (
-        <div className="-mx-5 overflow-x-auto px-5">
+        <ScrollX label="Recent months table">
           <table className="w-full min-w-[520px] text-sm">
             <thead>
               <tr className="text-left text-[11px] tracking-wide text-muted uppercase">
@@ -333,7 +334,7 @@ function RecentMonths({ data }: { data: ProjectData }) {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollX>
       )}
     </Card>
   );

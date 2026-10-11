@@ -16,6 +16,7 @@ import {
   CardHeader,
   Field,
   Notice,
+  ScrollX,
   Select,
   TextInput,
   cx,
@@ -690,7 +691,7 @@ function MonthlyPlan({ data, plan }: { data: ProjectData; plan: PlanResult }) {
         title="Month by month"
         hint="Targets to hit each month to stay on the plan line."
       />
-      <div className="-mx-5 overflow-x-auto px-5">
+      <ScrollX label="Monthly plan table">
         <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="text-left text-[11px] tracking-wide text-muted uppercase">
@@ -733,7 +734,7 @@ function MonthlyPlan({ data, plan }: { data: ProjectData; plan: PlanResult }) {
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollX>
       {rows.length > 12 && (
         <Button size="sm" variant="ghost" className="mt-3" onClick={() => setShowAll((s) => !s)}>
           {showAll ? "Show fewer" : `Show all ${rows.length} months`}

@@ -1,10 +1,42 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { ZodError } from "zod";
-import { Button, Card, CardHeader, PageTitle } from "@/components/ui";
+import { Button, Card, CardHeader, PageTitle, Segmented } from "@/components/ui";
 import { DownloadIcon, UploadIcon } from "@/components/icons";
+import {
+  applyThemePreference,
+  readThemePreference,
+  subscribeToTheme,
+  type ThemePreference,
+} from "@/lib/theme";
 import { getStorage } from "@/storage";
+
+const THEME_OPTIONS = [
+  { value: "dark", label: "Dark" },
+  { value: "light", label: "Light" },
+  { value: "system", label: "System" },
+] as const satisfies readonly { value: ThemePreference; label: string }[];
+
+function AppearanceCard() {
+  // The server has no preference to read, so it renders the default.
+  const theme = useSyncExternalStore<ThemePreference>(
+    subscribeToTheme,
+    readThemePreference,
+    () => "dark",
+  );
+  return (
+    <Card>
+      <CardHeader title="Appearance" hint="Saved in this browser." />
+      <Segmented
+        label="Theme"
+        options={THEME_OPTIONS}
+        value={theme}
+        onChange={applyThemePreference}
+      />
+    </Card>
+  );
+}
 
 type Status = { tone: "ok" | "error"; text: string } | null;
 
@@ -49,6 +81,7 @@ export function SettingsScreen() {
     <>
       <PageTitle title="Settings" />
       <div className="max-w-3xl space-y-4">
+        <AppearanceCard />
         <Card>
           <CardHeader
             title="Backup and restore"
@@ -66,6 +99,7 @@ export function SettingsScreen() {
               type="file"
               accept="application/json,.json"
               className="hidden"
+              aria-label="Backup file"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) void importData(file);

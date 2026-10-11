@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type Ref } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from "react";
 import { metricSnapshotSchema, type MetricSnapshot, type Project } from "@/domain";
 import type { ProjectData } from "@/components/data/hooks";
 import { ProjectGate } from "@/components/project/ProjectGate";
 import { SourceIcon } from "@/components/project/SourceIcon";
-import { Button, Card, Select } from "@/components/ui";
-import { PlugIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { CsvImport } from "@/components/project/CsvImport";
+import { Button, Card, Select, cx } from "@/components/ui";
+import { KeyboardIcon, PlugIcon, PlusIcon, TrashIcon, UploadIcon } from "@/components/icons";
 import {
   currencySymbol,
   formatPeriod,
@@ -148,6 +149,8 @@ function CellInput({
 function SavedRow({ snapshot, project }: { snapshot: MetricSnapshot; project: Project }) {
   const [values, setValues] = useState<Values>(() => toValues(snapshot));
   const [invalid, setInvalid] = useState<Column[]>([]);
+  // Saves in flight (one per cell left) and whether the last one just landed.
+  const [pending, setPending] = useState(0);
   const [saved, setSaved] = useState(false);
 
   // Storage changed underneath (an import, another screen): show the new
@@ -176,9 +179,15 @@ function SavedRow({ snapshot, project }: { snapshot: MetricSnapshot; project: Pr
     if (unchanged) return;
     const next = buildSnapshot(project.id, snapshot.period, parsed.numbers, snapshot);
     setOwnWrite(next.updatedAt);
-    await getStorage().snapshots.upsert(next);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    setPending((n) => n + 1);
+    setSaved(false);
+    try {
+      await getStorage().snapshots.upsert(next);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } finally {
+      setPending((n) => n - 1);
+    }
   }
 
   async function remove() {
@@ -190,7 +199,9 @@ function SavedRow({ snapshot, project }: { snapshot: MetricSnapshot; project: Pr
     <tr className="group border-t border-border">
       <td className="py-1.5 pr-3 whitespace-nowrap">
         <span className="text-sm">{formatPeriod(snapshot.period)}</span>
-        {saved && <span className="ml-2 text-[11px] text-muted">Saved</span>}
+        <span role="status" className="ml-2 text-[11px] text-muted">
+          {pending > 0 ? "Saving…" : saved ? "Saved" : ""}
+        </span>
       </td>
       {COLUMNS.map((column) => (
         <td key={column.key} className="px-1 py-1.5">
@@ -231,6 +242,11 @@ function AddRow({ project, snapshots }: { project: Project; snapshots: MetricSna
   const [invalid, setInvalid] = useState<Column[]>([]);
   const [error, setError] = useState<string | null>(null);
   const firstInput = useRef<HTMLInputElement>(null);
+
+  // The month got filled in some other way (an import, another tab): move on.
+  if (taken.has(period)) {
+    setPeriod(suggestPeriod(snapshots.map((s) => s.period)));
+  }
 
   useEffect(() => {
     if (window.location.hash === "#add") firstInput.current?.focus();
@@ -358,29 +374,79 @@ function DataTable({ data }: { data: ProjectData }) {
   );
 }
 
+function SourceTile({
+  icon,
+  title,
+  text,
+  onClick,
+  active,
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+  onClick?: () => void;
+  active?: boolean;
+}) {
+  const body = (
+    <>
+      <span className="mt-0.5 text-muted">{icon}</span>
+      <span>
+        <span className="block text-sm text-foreground">{title}</span>
+        <span className="block text-xs text-faint">{text}</span>
+      </span>
+    </>
+  );
+  const base = "flex items-start gap-3 rounded-xl border px-4 py-3 text-left";
+  return onClick ? (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cx(
+        base,
+        "transition-colors hover:border-border-strong hover:bg-surface-2",
+        active ? "border-border-strong bg-surface-2" : "border-border bg-surface",
+      )}
+    >
+      {body}
+    </button>
+  ) : (
+    <div className={cx(base, "border-dashed border-border-strong")}>{body}</div>
+  );
+}
+
 function Data({ data }: { data: ProjectData }) {
+  const [importing, setImporting] = useState(false);
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="text-sm leading-relaxed text-muted lg:col-span-2">
-          <p>
-            One row per month. Only <span className="text-foreground">MRR</span> and{" "}
-            <span className="text-foreground">paying customers</span> are required.
-            New and churned customers turn churn from an assumption into a measured
-            value; costs unlock runway and break-even. Changes save when you leave a
-            cell.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-dashed border-border-strong px-4 py-3 text-sm">
-          <span className="text-muted">
-            <PlugIcon />
-          </span>
-          <div>
-            <p>Connect Stripe or RevenueCat</p>
-            <p className="text-xs text-faint">Coming soon: synced months land in this same table.</p>
-          </div>
-        </div>
+      <p className="max-w-3xl text-sm leading-relaxed text-muted">
+        One row per month. Only <span className="text-foreground">MRR</span> and{" "}
+        <span className="text-foreground">paying customers</span> are required. New and
+        churned customers turn churn from an assumption into a measured value; costs
+        unlock runway and break-even. Changes save when you leave a cell.
+      </p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <SourceTile icon={<KeyboardIcon />} title="Type it in" text="Straight into the table below." />
+        <SourceTile
+          icon={<UploadIcon />}
+          title="Import a CSV"
+          text="From a spreadsheet or an export."
+          onClick={() => setImporting((v) => !v)}
+          active={importing}
+        />
+        <SourceTile
+          icon={<PlugIcon />}
+          title="Connect Stripe"
+          text="Coming soon: synced months land in this same table."
+        />
       </div>
+      {importing && (
+        <CsvImport
+          project={data.project}
+          snapshots={data.snapshots}
+          onClose={() => setImporting(false)}
+        />
+      )}
       <DataTable data={data} />
     </div>
   );

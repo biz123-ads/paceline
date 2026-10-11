@@ -52,7 +52,7 @@ export function CardHeader({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_STYLES: Record<ButtonVariant, string> = {
-  primary: "bg-foreground text-background hover:bg-white",
+  primary: "bg-foreground text-background hover:bg-foreground/85",
   secondary:
     "border border-border-strong bg-surface-2 text-foreground hover:bg-surface-3",
   ghost: "text-muted hover:bg-surface-2 hover:text-foreground",
@@ -309,6 +309,36 @@ export function PageTitle({
         {subtitle && <div className="mt-1 text-sm text-muted">{subtitle}</div>}
       </div>
       {action}
+    </div>
+  );
+}
+
+/**
+ * Horizontal scroller for wide tables inside a Card. Focusable so keyboard
+ * users can scroll it, unless the table has its own inputs (`focusable=false`).
+ */
+export function ScrollX({
+  label,
+  children,
+  focusable = true,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  focusable?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      role={focusable ? "region" : undefined}
+      aria-label={focusable ? label : undefined}
+      tabIndex={focusable ? 0 : undefined}
+      className={cx(
+        "-mx-5 overflow-x-auto px-5 outline-none focus-visible:ring-1 focus-visible:ring-foreground/30",
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }

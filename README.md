@@ -27,6 +27,11 @@ npm run dev        # http://localhost:3000
 | `npm run test:watch` | Unit tests in watch mode |
 | `npm run typecheck` | Generate route types, then `tsc --noEmit` |
 | `npm run lint` | ESLint |
+| `npm run test:e2e` | Production build, then Playwright (desktop + mobile, incl. axe WCAG AA checks) |
+
+First run of the end-to-end tests: `npx playwright install chromium`.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, build and the
+end-to-end suite on every push and pull request.
 
 ## Layout
 
@@ -38,8 +43,10 @@ src/
   config/       App name and constants (rename the product in config/app.ts)
   domain/       Zod schemas and types: project, snapshot, goal, assumptions, bundle
   plan/         Plan engine: pure functions, measured values, tests
+  import/       CSV import: column detection, month/amount parsing (EN + IT)
   lib/          Small helpers (months/periods, ids, formatting, sample project)
   storage/      Storage interfaces + local IndexedDB implementation
+e2e/            Playwright end-to-end and accessibility tests
 docs/           Specs and decisions
 ```
 
@@ -54,4 +61,8 @@ docs/           Specs and decisions
   snapshots, the goal and the levers, never saved.
 - **Plan, not prediction:** real months and plan lines always look different
   (bars vs dashed lines); values that are not measured are labelled.
+- **One table, many sources:** typed in, imported from CSV or (later) synced
+  from Stripe, every month lands in the same snapshot table with its `source`.
+- **Monochrome UI:** black, white and greys; blue only for special details.
+  Dark and light themes via CSS variables, applied before first paint.
 - IDs are UUIDs generated on the client.

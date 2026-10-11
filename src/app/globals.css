@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Dark only for now; a light theme only needs to redefine
- * these variables (e.g. under [data-theme="light"]).
+ * Design tokens. Dark is the default; [data-theme="light"] redefines them.
+ * The inline script in layout.tsx sets data-theme before the first paint.
  */
 :root {
   color-scheme: dark;
@@ -15,8 +15,9 @@
   --border: #1f1f1f;
   --border-strong: #2e2e2e;
   --foreground: #f2f2f2;
-  --muted: #8c8c8c;
-  --faint: #5a5a5a;
+  /* Greys meet WCAG AA (4.5:1) on every surface they are used on. */
+  --muted: #a3a3a3;
+  --faint: #858585;
   /* Blue only for the special details: goal, projection, your own values. */
   --accent: #4d8ef7;
   --accent-soft: rgb(77 142 247 / 0.14);
@@ -28,6 +29,32 @@
   --chart-track: #171717;
   --chart-plan: #7a7a7a;
   --chart-axis: #5f5f5f;
+  --chart-cursor: rgb(255 255 255 / 0.04);
+  --selection: rgb(255 255 255 / 0.18);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --sidebar: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f6f6f6;
+  --surface-3: #ececec;
+  --border: #e9e9e9;
+  --border-strong: #d6d6d6;
+  --foreground: #0a0a0a;
+  --muted: #525252;
+  --faint: #6a6a6a;
+  --accent: #2563eb;
+  --accent-soft: rgb(37 99 235 / 0.1);
+  --danger: #d92d20;
+  --danger-soft: rgb(217 45 32 / 0.08);
+  --chart-actual: #1a1a1a;
+  --chart-track: #f3f3f3;
+  --chart-plan: #9b9b9b;
+  --chart-axis: #a1a1a1;
+  --chart-cursor: rgb(0 0 0 / 0.04);
+  --selection: rgb(0 0 0 / 0.1);
 }
 
 @theme inline {
@@ -64,7 +91,7 @@ body {
 }
 
 ::selection {
-  background: rgb(255 255 255 / 0.18);
+  background: var(--selection);
 }
 
 /* Recharts draws a focus outline on click; the chart is not keyboard-driven. */

@@ -99,7 +99,7 @@ export function MrrChart({
               width={52}
             />
             <Tooltip
-              cursor={{ fill: "rgb(255 255 255 / 0.04)" }}
+              cursor={{ fill: "var(--chart-cursor)" }}
               content={(props) => (
                 <ChartTooltip {...(props as TooltipContentProps<number, string>)} currency={currency} />
               )}
