@@ -99,11 +99,3 @@ body {
 .recharts-surface:focus {
   outline: none;
 }
-
-/* Brand logos on the Import screens: each sets a colour per theme. */
-.brand-logo {
-  color: var(--logo-dark);
-}
-:root[data-theme="light"] .brand-logo {
-  color: var(--logo-light);
-}

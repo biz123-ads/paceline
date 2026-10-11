@@ -213,7 +213,8 @@ function SourceTile({
   title: string;
   text: string;
   onClick: () => void;
-  active: boolean;
+  /** Whether the importer this tile opens is showing; unset for plain actions. */
+  active?: boolean;
 }) {
   return (
     <button
@@ -221,7 +222,7 @@ function SourceTile({
       onClick={onClick}
       aria-pressed={active}
       className={cx(
-        "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors hover:border-border-strong hover:bg-surface-2",
+        "flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors hover:border-border-strong hover:bg-surface-2 sm:flex-col sm:items-start sm:py-4",
         active ? "border-border-strong bg-surface-2" : "border-border bg-surface",
       )}
     >
@@ -249,28 +250,25 @@ function Data({ data }: { data: ProjectData }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={() => addMonth()}
-          className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left transition-colors hover:border-border-strong hover:bg-surface-2"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-2 text-muted">
-            <PlusIcon />
-          </span>
-          <span>
-            <span className="block text-sm text-foreground">Type it in</span>
-            <span className="block text-xs text-faint">One month at a time.</span>
-          </span>
-        </button>
         <SourceTile
-          logo={<ConnectorLogo id="csv" />}
+          logo={
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2 text-muted">
+              <PlusIcon />
+            </span>
+          }
+          title="Type it in"
+          text="One month at a time."
+          onClick={() => addMonth()}
+        />
+        <SourceTile
+          logo={<ConnectorLogo ids={["excel", "google-sheets", "numbers"]} />}
           title="Import a spreadsheet"
-          text="Excel, Google Sheets, Numbers (CSV)."
+          text="Excel, Google Sheets or Numbers, saved as CSV."
           onClick={() => toggle("csv")}
           active={importer === "csv"}
         />
         <SourceTile
-          logo={<ConnectorLogo id="stripe" />}
+          logo={<ConnectorLogo ids={["stripe"]} />}
           title="Import from Stripe"
           text="Revenue and customers, month by month."
           onClick={() => toggle("stripe")}

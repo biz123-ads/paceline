@@ -13,6 +13,7 @@ import {
   type ImportPreview,
 } from "@/import/csv-import";
 import { Button, Card, CardHeader, ScrollX, Select, cx } from "@/components/ui";
+import { BrandMark, type ConnectorId } from "@/components/import/ConnectorLogo";
 import { DownloadIcon, UploadIcon } from "@/components/icons";
 import { formatMoney, formatNumber, formatPeriod } from "@/lib/format";
 import { newId, nowIso } from "@/lib/id";
@@ -21,10 +22,10 @@ import { getStorage } from "@/storage";
 const PREVIEW_ROWS = 12;
 
 /** Where each spreadsheet app hides its CSV export. */
-const SPREADSHEET_EXPORTS = [
-  { app: "Excel", path: "File → Save As → CSV UTF-8" },
-  { app: "Google Sheets", path: "File → Download → Comma-separated values" },
-  { app: "Numbers", path: "File → Export To → CSV" },
+const SPREADSHEET_EXPORTS: { id: ConnectorId; app: string; path: string }[] = [
+  { id: "excel", app: "Excel", path: "File → Save As → CSV UTF-8" },
+  { id: "google-sheets", app: "Google Sheets", path: "File → Download → Comma-separated values" },
+  { id: "numbers", app: "Numbers", path: "File → Export To → CSV" },
 ];
 
 function downloadTemplate() {
@@ -150,8 +151,11 @@ export function CsvImport({
       {!preview && (
         <ul className="mb-5 grid grid-cols-1 gap-2 text-xs text-muted sm:grid-cols-3">
           {SPREADSHEET_EXPORTS.map((s) => (
-            <li key={s.app} className="rounded-lg border border-border px-3 py-2">
-              <span className="block text-foreground">{s.app}</span>
+            <li key={s.id} className="rounded-lg border border-border px-3 py-2">
+              <span className="mb-1 flex items-center gap-2 text-foreground">
+                <BrandMark id={s.id} size={16} />
+                {s.app}
+              </span>
               {s.path}
             </li>
           ))}
