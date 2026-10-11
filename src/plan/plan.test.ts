@@ -8,6 +8,8 @@ import {
   planLine,
   requiredNewPerMonth,
 } from "./engine";
+import { customerFlow } from "./flow";
+import { leverImpacts } from "./impact";
 import { DEFAULT_CHURN_RATE, measureHistory } from "./measure";
 
 const projectId = "6f1b7a52-3c0e-4a52-9c1f-0d6b1f1f2a10";
@@ -240,5 +242,79 @@ describe("buildPlan", () => {
     }).goal!;
     expect(late.deadlinePassed).toBe(true);
     expect(late.requiredNewPerMonth).toBeNull();
+  });
+});
+
+describe("customer flow", () => {
+  it("is null until a month has customers who joined or left", () => {
+    expect(customerFlow([snap("2026-08", 100_000, 50), snap("2026-09", 110_000, 55)])).toBeNull();
+  });
+
+  it("totals the months that have either number, leaving the unknown one out", () => {
+    const flow = customerFlow([
+      snap("2026-06", 90_000, 45),
+      snap("2026-07", 100_000, 50, { newCustomers: 7, churnedCustomers: 2 }),
+      snap("2026-08", 104_000, 52, { newCustomers: 5 }),
+      snap("2026-09", 110_000, 55, { newCustomers: 6, churnedCustomers: 3 }),
+    ])!;
+    expect(flow.months).toEqual([
+      { period: "2026-07", joined: 7, left: 2 },
+      { period: "2026-08", joined: 5, left: undefined },
+      { period: "2026-09", joined: 6, left: 3 },
+    ]);
+    expect(flow).toMatchObject({ joined: 18, left: 5, joinedPerLeft: 3.6 });
+  });
+
+  it("has no ratio when nobody left", () => {
+    const flow = customerFlow([snap("2026-09", 110_000, 55, { newCustomers: 4, churnedCustomers: 0 })])!;
+    expect(flow.joinedPerLeft).toBeNull();
+  });
+});
+
+describe("lever impact", () => {
+  const base = {
+    from: "2026-09",
+    startCustomers: 100,
+    arpu: 2000,
+    churn: 0.02,
+    newPerMonth: 20,
+    targetMrr: 600_000,
+    deadline: "2028-09",
+  };
+
+  it("ranks the levers by how much sooner each one reaches the goal", () => {
+    // 300 customers needed: 13 months as it is.
+    const result = leverImpacts(base)!;
+    expect(result.measure).toBe("months");
+    expect(result.impacts.map((i) => [i.lever, i.monthsSooner])).toEqual([
+      ["price", 2],
+      ["newCustomers", 1],
+      ["churn", 0],
+    ]);
+    expect(result.impacts[0]).toMatchObject({ from: 2000, to: 2200 });
+    expect(result.impacts[2].to).toBeCloseTo(0.018);
+  });
+
+  it("compares revenue at the deadline when the goal is out of reach", () => {
+    // Levels off at 8 / 5% = 160 customers, far from the 500 needed.
+    const result = leverImpacts({
+      ...base,
+      startCustomers: 60,
+      churn: 0.05,
+      newPerMonth: 8,
+      targetMrr: 1_000_000,
+      deadline: "2028-03",
+    })!;
+    expect(result.measure).toBe("revenue");
+    expect(result.impacts.map((i) => i.lever)).toEqual(["price", "newCustomers", "churn"]);
+    expect(result.impacts.every((i) => i.monthsSooner === 0)).toBe(true);
+    expect(result.impacts[0].extraAtDeadline).toBeGreaterThan(result.impacts[1].extraAtDeadline);
+    expect(result.impacts[1].extraAtDeadline).toBeGreaterThan(result.impacts[2].extraAtDeadline);
+  });
+
+  it("leaves out levers at zero and needs a deadline ahead", () => {
+    const result = leverImpacts({ ...base, churn: 0, newPerMonth: 0 })!;
+    expect(result.impacts.map((i) => i.lever)).toEqual(["price"]);
+    expect(leverImpacts({ ...base, deadline: "2026-09" })).toBeNull();
   });
 });

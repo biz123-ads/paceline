@@ -33,6 +33,16 @@ describe("run_plan", () => {
     expect(result.numbers_used.price_per_customer?.source).toBe("measured");
   });
 
+  it("says which number helps the goal most, as the page does", () => {
+    const helps = runPlan(sample(), NO_CHANGES).goal?.each_number_10_percent_better;
+    expect(helps?.most_effective_first.map((h) => h.number).sort()).toEqual([
+      "churn_percent",
+      "new_customers_per_month",
+      "price_per_customer",
+    ]);
+    expect(helps?.most_effective_first[0]).toMatchObject({ from: "€20", to: "€22" });
+  });
+
   it("a higher price needs fewer customers, and is marked as the user's", () => {
     const result = runPlan(sample(), { ...NO_CHANGES, price_per_customer: 25 });
     expect(result.goal?.paying_customers_needed).toBe(400);

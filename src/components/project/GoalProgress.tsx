@@ -1,18 +1,16 @@
 import type { Goal } from "@/domain";
 import { formatMoney, formatPercent, formatPeriod } from "@/lib/format";
-import { SegmentBar } from "@/components/ui";
+import { ProgressBar } from "@/components/ui";
 
-/** "12% of €10,000 · by Mar 2028" with the segmented bar. */
+/** "12% of €10,000 · by Mar 2028" with a thin bar. */
 export function GoalProgress({
   goal,
   currentMrr,
   currency,
-  segments = 20,
 }: {
   goal: Goal;
   currentMrr: number;
   currency: string;
-  segments?: number;
 }) {
   const progress = currentMrr / goal.targetMrr;
   return (
@@ -23,10 +21,9 @@ export function GoalProgress({
         </span>
         <span className="num text-accent">{formatPercent(Math.min(progress, 1), { digits: 0 })}</span>
       </div>
-      <SegmentBar
+      <ProgressBar
         tone="accent"
         fraction={progress}
-        segments={segments}
         label={`Progress towards ${formatMoney(goal.targetMrr, currency)} a month`}
       />
     </div>

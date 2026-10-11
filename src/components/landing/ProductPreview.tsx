@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cx } from "@/components/ui";
 
 /**
@@ -10,34 +11,37 @@ const MONTHS = [442, 541, 621, 762, 819, 941, 1040, 1120, 1200];
 const PLAN = [941, 1053, 1179, 1319, 1476, 1652, 1849];
 const MAX = 2000;
 
-function Step({ n, title }: { n: number; title: string }) {
+function Chart() {
+  const w = 320;
+  const h = 110;
+  const pad = 4;
+  const slots = MONTHS.length + 2;
+  const y = (v: number) => pad + (h - 2 * pad) * (1 - v / MAX);
+  const x = (i: number) => pad + (i * (w - 2 * pad)) / (slots - 1);
+  const points = (values: number[], offset = 0) =>
+    values.map((v, i) => `${x(i + offset).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const last = MONTHS.length - 1;
   return (
-    <p className="flex items-center gap-2 text-xs text-muted">
-      <span className="num flex h-4 w-4 items-center justify-center rounded-full bg-surface-3 text-[10px]">{n}</span>
-      {title}
-    </p>
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-28 w-full" aria-hidden>
+      <polyline
+        points={points(PLAN, 5)}
+        fill="none"
+        stroke="var(--chart-plan)"
+        strokeWidth={1.5}
+        strokeDasharray="4 4"
+      />
+      <polyline points={points(MONTHS)} fill="none" stroke="var(--chart-actual)" strokeWidth={2} />
+      <circle cx={x(last)} cy={y(MONTHS[last])} r={3.5} fill="var(--chart-actual)" />
+    </svg>
   );
 }
 
-function Chart() {
-  const w = 320;
-  const h = 120;
-  const slots = MONTHS.length + 3;
-  const slot = w / slots;
-  const bar = slot * 0.5;
-  const y = (v: number) => h - (v / MAX) * h;
-  const x = (i: number) => i * slot + slot / 2;
-  const plan = PLAN.map((v, i) => `${x(i + 5).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-28 w-full" aria-hidden>
-      {MONTHS.map((v, i) => (
-        <g key={i}>
-          <rect x={x(i) - bar / 2} y={0} width={bar} height={h} rx={3} fill="var(--chart-track)" />
-          <rect x={x(i) - bar / 2} y={y(v)} width={bar} height={h - y(v)} rx={3} fill="var(--chart-actual)" />
-        </g>
-      ))}
-      <polyline points={plan} fill="none" stroke="var(--chart-plan)" strokeWidth={1.5} strokeDasharray="5 4" />
-    </svg>
+    <div className="space-y-3 rounded-xl border border-border p-4">
+      <p className="text-xs text-muted">{title}</p>
+      {children}
+    </div>
   );
 }
 
@@ -45,45 +49,38 @@ export function ProductPreview({ className }: { className?: string }) {
   return (
     <div
       className={cx(
-        "rounded-3xl border border-border-strong bg-surface p-5 shadow-2xl shadow-black/20 sm:p-6",
+        "space-y-3 rounded-2xl border border-border-strong bg-surface p-5 sm:p-6",
         className,
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-2">
         <p className="text-sm font-medium">Invoicely</p>
-        <span className="rounded-lg bg-foreground px-2.5 py-1 text-[11px] font-medium text-background">+ Add month</span>
+        <span className="rounded-md bg-foreground px-2.5 py-1 text-[11px] font-medium text-background">+ Add month</span>
       </div>
 
-      <div className="mt-5 space-y-3 rounded-2xl border border-border bg-background/40 p-4">
-        <Step n={1} title="Where you are" />
+      <Block title="Where you are">
         <div className="flex items-baseline gap-2">
           <span className="num text-3xl tracking-tight">€1,200</span>
-          <span className="num rounded-md bg-surface-3 px-1.5 py-0.5 text-[11px]">↑ 7.1%</span>
+          <span className="num text-xs">↑ 7.1%</span>
         </div>
         <Chart />
-      </div>
+      </Block>
 
-      <div className="mt-3 space-y-3 rounded-2xl border border-border bg-background/40 p-4">
-        <Step n={2} title="Where you want to go" />
+      <Block title="Where you want to go">
         <p className="text-lg tracking-tight">
           <span className="num">€10,000</span> <span className="text-muted">a month by</span> Mar 2028
         </p>
-        <div className="flex gap-[3px]" aria-hidden>
-          {Array.from({ length: 24 }, (_, i) => (
-            <span key={i} className={cx("h-2 flex-1 rounded-[2px]", i < 3 ? "bg-accent" : "bg-surface-3")} />
-          ))}
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-3" aria-hidden>
+          <div className="h-full w-[12%] rounded-full bg-accent" />
         </div>
-      </div>
+      </Block>
 
-      <div className="mt-3 space-y-2 rounded-2xl border border-border bg-background/40 p-4">
-        <Step n={3} title="What it takes" />
+      <Block title="What it takes">
         <p className="text-lg tracking-tight">
           Win about <span className="num">41</span> new customers a month
         </p>
-        <p className="border-l-2 border-accent pl-3 text-xs text-muted">
-          At your current pace you stall around €2,741 a month.
-        </p>
-      </div>
+        <p className="text-xs text-muted">At your current pace you stall around €2,741 a month.</p>
+      </Block>
     </div>
   );
 }

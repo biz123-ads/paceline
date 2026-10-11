@@ -24,6 +24,9 @@ for (const theme of ["dark", "light"] as const) {
     await audit(page, "empty projects");
     await loadSampleProject(page);
     await audit(page, "overview");
+    await page.getByRole("radio", { name: "Won and lost" }).click();
+    await expect(page.getByText(/customers joined and/)).toBeVisible();
+    await audit(page, "won and lost");
     await page.getByRole("button", { name: "Add month" }).click();
     await page.getByRole("button", { name: /^More details/ }).click();
     await audit(page, "add month dialog");

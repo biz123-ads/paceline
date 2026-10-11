@@ -3,6 +3,7 @@ import type { Assumptions, Goal, MetricSnapshot, Project } from "@/domain";
 import { formatMoney, formatPeriod } from "@/lib/format";
 import { monthsBetween, PERIOD_RE } from "@/lib/period";
 import { buildPlan, type PlanResult } from "@/plan/engine";
+import { leverImpacts, type LeverName } from "@/plan/impact";
 
 /**
  * The assistant's only calculator: the same plan engine as the app, with
@@ -68,6 +69,23 @@ export function summarizePlan(data: ProjectSnapshot, plan: PlanResult) {
   const g = plan.goal;
   const round = (n: number | null | undefined, digits = 1) =>
     n === null || n === undefined || !Number.isFinite(n) ? null : Number(n.toFixed(digits));
+  const impact =
+    g && !g.reached && data.goal && latest && levers.arpu
+      ? leverImpacts({
+          from: latest.period,
+          startCustomers: latest.payingCustomers,
+          arpu: levers.arpu.value,
+          churn: levers.churnRate.value,
+          newPerMonth: levers.newCustomersPerMonth.value,
+          targetMrr: data.goal.targetMrr,
+          deadline: data.goal.deadline,
+        })
+      : null;
+  const leverValue: Record<LeverName, (v: number) => string | number | null> = {
+    price: (v) => money(v),
+    churn: (v) => round(v * 100, 2),
+    newCustomers: (v) => round(v),
+  };
 
   return {
     latest_month: latest ? formatPeriod(latest.period) : null,
@@ -107,6 +125,26 @@ export function summarizePlan(data: ProjectSnapshot, plan: PlanResult) {
               }
             : null,
           vs_plan_line_this_month: g.vsPlan ? money(g.vsPlan.delta) : null,
+          // The same comparison as "What moves it most" on the page.
+          each_number_10_percent_better: impact
+            ? {
+                compared_by:
+                  impact.measure === "months"
+                    ? "months sooner the goal is reached"
+                    : "extra monthly revenue at the deadline",
+                most_effective_first: impact.impacts.map((i) => ({
+                  number: {
+                    price: "price_per_customer",
+                    churn: "churn_percent",
+                    newCustomers: "new_customers_per_month",
+                  }[i.lever],
+                  from: leverValue[i.lever](i.from),
+                  to: leverValue[i.lever](i.to),
+                  months_sooner: impact.measure === "months" ? i.monthsSooner : null,
+                  extra_monthly_revenue_at_deadline: money(i.extraAtDeadline),
+                })),
+              }
+            : null,
         }
       : null,
     cash_on_hand: money(data.project.cashBalance),

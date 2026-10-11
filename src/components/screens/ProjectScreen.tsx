@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import type { Assumptions, Goal } from "@/domain";
 import type { ProjectData } from "@/components/data/hooks";
+import { CostsChart } from "@/components/charts/CostsChart";
+import { FlowChart } from "@/components/charts/FlowChart";
 import { MrrChart } from "@/components/charts/MrrChart";
 import { mrrSeries } from "@/components/charts/series";
 import { useAddMonth } from "@/components/project/AddMonth";
@@ -18,7 +20,8 @@ import {
   DeltaBadge,
   Notice,
   ScrollX,
-  SegmentBar,
+  ProgressBar,
+  Segmented,
   TextInput,
   cx,
 } from "@/components/ui";
@@ -35,36 +38,36 @@ import {
   parsePercent,
 } from "@/lib/format";
 import { nowIso } from "@/lib/id";
-import { addMonths, currentPeriod, monthsBetween } from "@/lib/period";
+import { addMonths, currentPeriod, monthsBetween, periodRange } from "@/lib/period";
 import {
   buildPlan,
   MAX_PROJECTION_MONTHS,
   project as projectPath,
   type PlanResult,
 } from "@/plan/engine";
+import { customerFlow } from "@/plan/flow";
+import { LEVER_STEP, leverImpacts, type LeverImpact, type LeverName } from "@/plan/impact";
 import type { Sourced, ValueSource } from "@/plan/measure";
 import { getStorage } from "@/storage";
 
 /** Real months shown in the chart. */
 const CHART_HISTORY = 12;
-/** Without a goal, the chart looks this far past the latest month. */
-const CHART_AHEAD = 12;
 /** The chart never looks further ahead than this. */
 const CHART_MAX_AHEAD = 36;
 /** Runway bar is full at this many months. */
 const RUNWAY_FULL = 24;
+/** The costs chart looks at most this far ahead for break-even. */
+const COSTS_MAX_AHEAD = 36;
 
 /* -------------------------------------------------------------- building */
 
-/** A numbered step of the page: 1 where you are, 2 goal, 3 what it takes. */
+/** One part of the page: where you are, the goal, what it takes, cash. */
 function Section({
-  step,
   title,
   action,
   children,
   className,
 }: {
-  step?: number;
   title: string;
   action?: ReactNode;
   children: ReactNode;
@@ -72,18 +75,8 @@ function Section({
 }) {
   return (
     <Card className={className}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2.5 text-[15px] font-medium">
-          {step !== undefined && (
-            <span
-              aria-hidden
-              className="num flex h-5 w-5 items-center justify-center rounded-full bg-surface-3 text-[11px] text-muted"
-            >
-              {step}
-            </span>
-          )}
-          {title}
-        </h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="text-[15px] font-medium">{title}</h2>
         {action}
       </div>
       {children}
@@ -102,15 +95,32 @@ function Label({ children, hint, term }: { children: ReactNode; hint?: string; t
 
 /* ----------------------------------------------------- 1. where you are */
 
+const CHART_VIEWS = [
+  { value: "revenue", label: "Revenue" },
+  { value: "flow", label: "Won and lost" },
+] as const;
+
+type ChartView = (typeof CHART_VIEWS)[number]["value"];
+
+/** Customers who joined against those who left, in a sentence. */
+function flowSummary(flow: NonNullable<ReturnType<typeof customerFlow>>): string {
+  const n = flow.months.length;
+  const head = `${formatNumber(flow.joined)} ${flow.joined === 1 ? "customer" : "customers"} joined and ${formatNumber(flow.left)} left over ${n} ${n === 1 ? "month" : "months"}`;
+  if (flow.joinedPerLeft === null) return `${head}.`;
+  if (flow.left > flow.joined) return `${head}: more left than joined, so keeping customers matters most right now.`;
+  return `${head}: about ${formatNumber(flow.joinedPerLeft, 1)} joined for every one who left.`;
+}
+
 function WhereYouAre({ data, plan }: { data: ProjectData; plan: PlanResult }) {
   const { project, snapshots, goal } = data;
   const addMonth = useAddMonth();
+  const [view, setView] = useState<ChartView>("revenue");
   const { latest, previous, mrrChange, lowConfidence, monthsOfHistory } = plan.measures;
   const currency = project.currency;
 
   if (!latest) {
     return (
-      <Section step={1} title="Where you are">
+      <Section title="Where you are">
         <div className="flex flex-col items-center py-10 text-center">
           <p className="font-medium">Start with last month&apos;s numbers</p>
           <p className="mt-1 max-w-sm text-sm text-muted">
@@ -128,33 +138,25 @@ function WhereYouAre({ data, plan }: { data: ProjectData; plan: PlanResult }) {
     );
   }
 
-  const { levers } = plan;
   const first = snapshots[0].period;
   let from = [first, addMonths(latest.period, -(CHART_HISTORY - 1))].sort().at(-1)!;
   if (goal && goal.baselinePeriod < from && goal.baselinePeriod >= first) from = goal.baselinePeriod;
+  // With a goal the chart runs to its date, so the plan line shows the way.
   const ahead =
     goal && monthsBetween(latest.period, goal.deadline) > 0
       ? Math.min(monthsBetween(latest.period, goal.deadline), CHART_MAX_AHEAD)
-      : CHART_AHEAD;
+      : 0;
   const to = addMonths(latest.period, ahead);
-  const projection = levers.arpu
-    ? projectPath(
-        latest.period,
-        latest.payingCustomers,
-        levers.arpu.value,
-        levers.churnRate.value,
-        levers.newCustomersPerMonth.value,
-        ahead,
-      )
-    : [];
+  const flow = view === "flow" ? customerFlow(snapshots.filter((s) => s.period >= from)) : null;
 
   return (
-    <Section step={1} title="Where you are">
+    <Section
+      title="Where you are"
+      action={<Segmented label="Chart" options={CHART_VIEWS} value={view} onChange={setView} />}
+    >
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
-          <Label hint={GLOSSARY.revenue} term="monthly revenue">
-            Monthly revenue · {formatPeriod(latest.period)}
-          </Label>
+          <Label>Monthly revenue · {formatPeriod(latest.period)}</Label>
           <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="num text-4xl tracking-tight sm:text-[44px]">
               {formatMoney(latest.mrr, currency)}
@@ -174,7 +176,7 @@ function WhereYouAre({ data, plan }: { data: ProjectData; plan: PlanResult }) {
         <dl className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
           <div>
             <dt>
-              <Label hint={GLOSSARY.customers} term="a paying customer">
+              <Label>
                 Paying customers
               </Label>
             </dt>
@@ -182,7 +184,7 @@ function WhereYouAre({ data, plan }: { data: ProjectData; plan: PlanResult }) {
           </div>
           <div>
             <dt>
-              <Label hint={GLOSSARY.price} term="price per customer">
+              <Label>
                 Each pays
               </Label>
             </dt>
@@ -206,10 +208,31 @@ function WhereYouAre({ data, plan }: { data: ProjectData; plan: PlanResult }) {
         </dl>
       </div>
       <div className="mt-6">
-        <MrrChart
-          data={mrrSeries({ from, to, snapshots, plan: plan.planLine, projection })}
-          currency={currency}
-        />
+        {view === "revenue" ? (
+          <MrrChart
+            data={mrrSeries({ from, to, snapshots, plan: plan.planLine })}
+            currency={currency}
+          />
+        ) : flow ? (
+          <>
+            <FlowChart months={flow.months} from={from} to={latest.period} />
+            <p className="mt-4 text-sm text-muted">
+              {flowSummary(flow)}
+              <Hint term="won and lost">{GLOSSARY.flow}</Hint>
+            </p>
+          </>
+        ) : (
+          <div className="flex flex-col items-center rounded-lg bg-surface-2 px-4 py-10 text-center">
+            <p className="text-sm font-medium">Where do your customers come and go?</p>
+            <p className="mt-1 max-w-sm text-sm text-muted">
+              Add how many customers joined and how many left each month. On the Data tab,
+              open &ldquo;More columns&rdquo;; a Stripe import fills them in for you.
+            </p>
+            <ButtonLink href={`/projects/${project.id}/data`} className="mt-5">
+              Fill them in
+            </ButtonLink>
+          </div>
+        )}
       </div>
       {lowConfidence && (
         <p className="mt-4 text-xs text-muted">
@@ -235,7 +258,7 @@ function WhereYouWantToGo({ data, plan }: { data: ProjectData; plan: PlanResult 
 
   if (!latest) {
     return (
-      <Section step={2} title="Where you want to go">
+      <Section title="Where you want to go">
         <p className="text-sm text-muted">
           Once you have a month of numbers, pick a target, like{" "}
           {formatMoney(1_000_000, currency)} a month by next year.
@@ -251,7 +274,7 @@ function WhereYouWantToGo({ data, plan }: { data: ProjectData; plan: PlanResult 
 
   if (!goal || !g || editing) {
     return (
-      <Section step={2} title="Where you want to go">
+      <Section title="Where you want to go">
         {!goal && (
           <p className="-mt-1 mb-5 text-sm text-muted">
             Pick a monthly revenue and a date. The page works out what it takes.
@@ -309,7 +332,6 @@ function WhereYouWantToGo({ data, plan }: { data: ProjectData; plan: PlanResult 
 
   return (
     <Section
-      step={2}
       title="Where you want to go"
       action={
         <div className="flex gap-1">
@@ -333,10 +355,9 @@ function WhereYouWantToGo({ data, plan }: { data: ProjectData; plan: PlanResult 
           </span>
           <span className="num text-accent">{formatPercent(Math.min(g.progress, 1), { digits: 0 })}</span>
         </div>
-        <SegmentBar
+        <ProgressBar
           tone="accent"
           fraction={g.progress}
-          segments={30}
           label={`Progress towards ${formatMoney(goal.targetMrr, currency)} a month`}
         />
       </div>
@@ -388,12 +409,9 @@ function PaceSentence({ data, plan }: { data: ProjectData; plan: PlanResult }) {
   }
 
   return (
-    <p className="rounded-r-xl border-l-2 border-accent bg-surface-2 px-4 py-3 text-sm">
+    <p className="text-sm">
       <span className="text-muted">{subject}, </span>
       {body}
-      <Hint term="pace" align="right">
-        {GLOSSARY.pace}
-      </Hint>
     </p>
   );
 }
@@ -419,7 +437,8 @@ function LeverInput({
   original,
 }: {
   label: string;
-  hint: string;
+  /** Explains the label behind a "?"; plain labels go without. */
+  hint?: string;
   /** Current value, as shown in the input. */
   value: string;
   prefix?: string;
@@ -456,7 +475,7 @@ function LeverInput({
     <div>
       <div className="flex items-center text-xs text-muted">
         <label htmlFor={id}>{label}</label>
-        <Hint term={label.toLowerCase()}>{hint}</Hint>
+        {hint && <Hint term={label.toLowerCase()}>{hint}</Hint>}
       </div>
       <div className="relative mt-1.5">
         {prefix && (
@@ -499,6 +518,99 @@ function LeverInput({
           SOURCE_NOTES[source]
         ) : null}
       </p>
+    </div>
+  );
+}
+
+const LEVER_TEXT: Record<LeverName, { title: string; detail: (i: LeverImpact, currency: string) => string }> = {
+  price: {
+    title: "Charge a little more",
+    detail: (i, currency) => `${formatMoney(i.from, currency)} → ${formatMoney(i.to, currency)} a month`,
+  },
+  churn: {
+    title: "Keep more customers",
+    detail: (i) => `${formatPercent(i.from)} → ${formatPercent(i.to)} leave each month`,
+  },
+  newCustomers: {
+    title: "Win more customers",
+    detail: (i) => `${formatNumber(i.from, 1)} → ${formatNumber(i.to, 1)} new each month`,
+  },
+};
+
+const LEVER_PATCH: Record<LeverName, (value: number) => Partial<Assumptions>> = {
+  price: (v) => ({ arpu: v }),
+  churn: (v) => ({ monthlyChurnRate: v }),
+  newCustomers: (v) => ({ newCustomersPerMonth: v }),
+};
+
+/** Which lever brings the goal closest, each improved by the same share. */
+function WhatMovesIt({ data, plan }: { data: ProjectData; plan: PlanResult }) {
+  const goal = data.goal!;
+  const latest = plan.measures.latest!;
+  const { levers } = plan;
+  const currency = data.project.currency;
+  if (!levers.arpu) return null;
+
+  const result = leverImpacts({
+    from: latest.period,
+    startCustomers: latest.payingCustomers,
+    arpu: levers.arpu.value,
+    churn: levers.churnRate.value,
+    newPerMonth: levers.newCustomersPerMonth.value,
+    targetMrr: goal.targetMrr,
+    deadline: goal.deadline,
+  });
+  if (!result) return null;
+  const inMonths = result.measure === "months";
+  const score = (i: LeverImpact) => (inMonths ? i.monthsSooner : i.extraAtDeadline);
+  const top = Math.max(0, ...result.impacts.map(score));
+  if (top === 0) return null;
+
+  return (
+    <div className="mt-6 border-t border-border pt-5">
+      <p className="text-sm font-medium">
+        What moves it most{" "}
+        <span className="font-normal text-muted">
+          each number {formatPercent(LEVER_STEP)} better, one at a time.
+        </span>
+        <Hint term="what moves it most">{GLOSSARY.leverImpact}</Hint>
+      </p>
+      <ul className="mt-4 space-y-4">
+        {result.impacts.map((i, k) => {
+          const { title, detail } = LEVER_TEXT[i.lever];
+          const effect = inMonths
+            ? i.monthsSooner > 0
+              ? `${formatMonths(i.monthsSooner)} sooner`
+              : "same month"
+            : `+${formatMoney(i.extraAtDeadline, currency, { whole: true })} a month by ${formatPeriod(goal.deadline)}`;
+          return (
+            <li key={i.lever}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-sm">
+                <span>
+                  {title} <span className="num text-muted">· {detail(i, currency)}</span>
+                </span>
+                <span className={cx("num", k === 0 ? "font-medium" : "text-muted")}>{effect}</span>
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <div aria-hidden className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
+                  <div
+                    className={cx("h-full rounded-full", k === 0 ? "bg-accent" : "bg-foreground/45")}
+                    style={{ width: `${(score(i) / top) * 100}%` }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => saveLevers(data, LEVER_PATCH[i.lever](i.to))}
+                  aria-label={`Try it: ${title.toLowerCase()}`}
+                  className="text-xs text-muted underline hover:text-foreground"
+                >
+                  Try it
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -662,7 +774,7 @@ function WhatItTakes({ data, plan }: { data: ProjectData; plan: PlanResult }) {
 
   if (g.deadlinePassed) {
     return (
-      <Section step={3} title="What it takes">
+      <Section title="What it takes">
         <p className="text-sm text-muted">
           {formatPeriod(goal.deadline)} has passed. Change the goal above to set a new date;
           your numbers stay.
@@ -677,7 +789,7 @@ function WhatItTakes({ data, plan }: { data: ProjectData; plan: PlanResult }) {
   const onTrack = g.requiredNewPerMonth !== null && pace >= g.requiredNewPerMonth;
 
   return (
-    <Section step={3} title={`What it takes · ${formatMonths(g.monthsLeft)} left`}>
+    <Section title={`What it takes · ${formatMonths(g.monthsLeft)} left`}>
       {g.requiredNewPerMonth !== null && g.customersNeeded !== null ? (
         <div className="grid grid-cols-1 gap-x-8 gap-y-5 lg:grid-cols-[1.2fr_1fr]">
           <div>
@@ -722,6 +834,7 @@ function WhatItTakes({ data, plan }: { data: ProjectData; plan: PlanResult }) {
       <div className="mt-5">
         <PaceSentence data={data} plan={plan} />
       </div>
+      <WhatMovesIt data={data} plan={plan} />
       <WhatIf data={data} plan={plan} />
       <MonthByMonth data={data} plan={plan} />
     </Section>
@@ -729,6 +842,42 @@ function WhatItTakes({ data, plan }: { data: ProjectData; plan: PlanResult }) {
 }
 
 /* ------------------------------------------------------- costs and cash */
+
+/** Revenue and costs month by month, then at this pace until break-even. */
+function RevenueAgainstCosts({ data, plan }: { data: ProjectData; plan: PlanResult }) {
+  const { snapshots, project } = data;
+  const { levers } = plan;
+  const latest = plan.measures.latest!;
+  const costs = levers.monthlyCosts!.value;
+  const from = [snapshots[0].period, addMonths(latest.period, -(CHART_HISTORY - 1))].sort().at(-1)!;
+  const ahead = plan.breakEvenAt
+    ? Math.min(Math.max(monthsBetween(latest.period, plan.breakEvenAt) + 3, 6), COSTS_MAX_AHEAD)
+    : plan.profitable
+      ? 6
+      : 12;
+  const projected = new Map(
+    levers.arpu
+      ? projectPath(
+          latest.period,
+          latest.payingCustomers,
+          levers.arpu.value,
+          levers.churnRate.value,
+          levers.newCustomersPerMonth.value,
+          ahead,
+        ).map((p) => [p.period, p.mrr])
+      : [],
+  );
+  const actual = new Map(snapshots.map((s) => [s.period, s]));
+  const points = periodRange(from, addMonths(latest.period, ahead)).map((period) => ({
+    period,
+    revenue: actual.get(period)?.mrr,
+    costs: actual.get(period)?.costs,
+    projection: projected.get(period),
+    costsAhead: period >= latest.period ? costs : undefined,
+  }));
+
+  return <CostsChart data={points} currency={project.currency} breakEvenAt={plan.breakEvenAt} />;
+}
 
 function CostsAndCash({ data, plan }: { data: ProjectData; plan: PlanResult }) {
   const { project } = data;
@@ -769,14 +918,13 @@ function CostsAndCash({ data, plan }: { data: ProjectData; plan: PlanResult }) {
             )}
           </p>
           <div className="mt-3">
-            <SegmentBar fraction={fraction} label="Months of cash left" />
+            <ProgressBar fraction={fraction} label="Months of cash left" />
           </div>
           {note && <p className="mt-3 text-xs text-muted">{note}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <LeverInput
             label="Costs a month"
-            hint={GLOSSARY.costs}
             prefix={currencySymbol(currency)}
             value={moneyInputValue(costs?.value)}
             source={costs?.source ?? null}
@@ -787,7 +935,6 @@ function CostsAndCash({ data, plan }: { data: ProjectData; plan: PlanResult }) {
           />
           <LeverInput
             label="Cash on hand"
-            hint={GLOSSARY.cash}
             prefix={currencySymbol(currency)}
             value={moneyInputValue(project.cashBalance)}
             source={null}
@@ -798,6 +945,11 @@ function CostsAndCash({ data, plan }: { data: ProjectData; plan: PlanResult }) {
           />
         </div>
       </div>
+      {costs && (
+        <div className="mt-6">
+          <RevenueAgainstCosts data={data} plan={plan} />
+        </div>
+      )}
     </Section>
   );
 }

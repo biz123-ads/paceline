@@ -16,7 +16,7 @@ export function Card({
 }) {
   return (
     <section
-      className={cx("rounded-2xl border border-border bg-surface p-5", className)}
+      className={cx("rounded-xl border border-border bg-surface p-5", className)}
     >
       {children}
     </section>
@@ -100,7 +100,7 @@ export function ButtonLink({
   );
 }
 
-/** Monochrome pill with an arrow, like "↑ 18.3%": up is white, down is grey. */
+/** A change with an arrow, like "↑ 18.3%": up is white, down is grey. */
 export function DeltaBadge({
   value,
   label,
@@ -113,13 +113,7 @@ export function DeltaBadge({
 }) {
   const tone = value > 0 ? "text-foreground" : "text-muted";
   return (
-    <span
-      className={cx(
-        "num inline-flex items-center gap-1 rounded-md bg-surface-3 px-2 py-0.5 text-xs",
-        tone,
-        className,
-      )}
-    >
+    <span className={cx("num inline-flex items-center gap-1 text-sm", tone, className)}>
       <span aria-hidden>{value > 0 ? "↑" : value < 0 ? "↓" : "→"}</span>
       {label}
     </span>
@@ -161,38 +155,30 @@ export function Segmented<T extends string>({
   );
 }
 
-/**
- * Row of small blocks, filled up to `fraction` (the "score" bar). Blue is
- * kept for the goal; everything else is neutral.
- */
-export function SegmentBar({
+/** A thin bar filled up to `fraction`. Blue is kept for the goal. */
+export function ProgressBar({
   fraction,
-  segments = 20,
   tone = "neutral",
   label,
 }: {
   fraction: number;
-  segments?: number;
   tone?: "accent" | "neutral";
   label: string;
 }) {
-  const filled = Math.round(Math.min(1, Math.max(0, fraction)) * segments);
-  const on = tone === "accent" ? "bg-accent" : "bg-foreground/85";
+  const value = Math.min(1, Math.max(0, fraction));
   return (
     <div
       role="meter"
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={Math.round(Math.min(1, fraction) * 100)}
-      className="flex gap-[3px]"
+      aria-valuenow={Math.round(value * 100)}
+      className="h-1.5 overflow-hidden rounded-full bg-surface-3"
     >
-      {Array.from({ length: segments }, (_, i) => (
-        <span
-          key={i}
-          className={cx("h-2.5 flex-1 rounded-[2px]", i < filled ? on : "bg-surface-3")}
-        />
-      ))}
+      <div
+        className={cx("h-full rounded-full", tone === "accent" ? "bg-accent" : "bg-foreground/80")}
+        style={{ width: `${value * 100}%` }}
+      />
     </div>
   );
 }
@@ -212,7 +198,7 @@ export function Notice({
   return (
     <div
       className={cx(
-        "rounded-xl border px-4 py-3 text-sm",
+        "rounded-lg border px-4 py-3 text-sm",
         tone === "strong"
           ? "border-border-strong bg-surface-2 text-foreground"
           : "border-border bg-surface text-muted",
@@ -225,7 +211,7 @@ export function Notice({
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cx("animate-pulse rounded-2xl bg-surface", className)} />
+    <div className={cx("animate-pulse rounded-xl bg-surface", className)} />
   );
 }
 

@@ -48,7 +48,7 @@ export function Dialog({
         "border border-border-strong bg-surface p-0 text-foreground shadow-2xl backdrop:bg-black/60",
         side
           ? "my-0 mr-0 ml-auto h-dvh max-h-dvh w-full max-w-md rounded-none border-y-0 border-r-0"
-          : "m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl",
+          : "m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl",
         className,
       )}
     >

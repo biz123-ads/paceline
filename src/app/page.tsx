@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 };
 
 const primary =
-  "inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-foreground/85";
+  "inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-foreground/85";
 const secondary =
-  "inline-flex h-11 items-center justify-center rounded-xl border border-border-strong px-5 text-sm font-medium transition-colors hover:bg-surface-2";
+  "inline-flex h-11 items-center justify-center rounded-lg border border-border-strong px-5 text-sm font-medium transition-colors hover:bg-surface-2";
 
 function Section({ id, title, intro, children }: { id?: string; title: string; intro?: ReactNode; children: ReactNode }) {
   return (
@@ -90,12 +90,9 @@ export default function Landing() {
 
         <Section title="Three questions, one page" intro="For SaaS products, apps and side projects that charge every month.">
           <ol className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="rounded-2xl border border-border bg-surface p-6">
-                <span className="num flex h-6 w-6 items-center justify-center rounded-full bg-surface-3 text-xs text-muted">
-                  {i + 1}
-                </span>
-                <h3 className="mt-4 font-medium">{s.title}</h3>
+            {STEPS.map((s) => (
+              <li key={s.title} className="rounded-xl border border-border bg-surface p-6">
+                <h3 className="font-medium">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{s.text}</p>
               </li>
             ))}
@@ -120,8 +117,8 @@ export default function Landing() {
           title="Ask about your numbers"
           intro={`An assistant that answers with the same plan engine as the page, so the numbers match. Pay per question: ${CREDIT_COST.question} credit, or ${CREDIT_COST.webSearch} with a web search. New accounts get ${SIGNUP_BONUS} free.`}
         >
-          <div className="max-w-xl space-y-4 rounded-2xl border border-border bg-surface p-5 text-sm">
-            <p className="ml-auto w-fit rounded-2xl rounded-br-md bg-surface-3 px-4 py-2.5">
+          <div className="max-w-xl space-y-4 rounded-xl border border-border bg-surface p-5 text-sm">
+            <p className="ml-auto w-fit rounded-xl bg-surface-3 px-4 py-2.5">
               What if I raise my price to €25 a month?
             </p>
             <p className="text-xs text-faint">Ran the plan with price €25</p>

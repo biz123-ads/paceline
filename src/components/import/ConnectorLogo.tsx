@@ -73,7 +73,7 @@ export function ConnectorLogo({
     <span
       className={cx(
         "flex shrink-0 items-center justify-center border border-border bg-surface-2",
-        size === "lg" ? "h-14 w-14 rounded-2xl" : "h-10 w-10 rounded-xl",
+        size === "lg" ? "h-14 w-14 rounded-xl" : "h-10 w-10 rounded-lg",
       )}
     >
       <svg

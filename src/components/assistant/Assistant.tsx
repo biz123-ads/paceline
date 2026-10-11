@@ -92,7 +92,7 @@ function Formatted({ text }: { text: string }) {
 function Message({ message, currency }: { message: ChatMessage; currency: string }) {
   if (message.role === "user") {
     return (
-      <div className="ml-8 self-end rounded-2xl rounded-br-md bg-surface-3 px-4 py-2.5 text-sm whitespace-pre-line">
+      <div className="ml-8 self-end rounded-xl bg-surface-3 px-4 py-2.5 text-sm whitespace-pre-line">
         {message.text}
       </div>
     );
@@ -246,7 +246,7 @@ function Chat({ project }: { project: Project }) {
                     setWeb(s.web);
                     void ask(s.text, s.web);
                   }}
-                  className="rounded-xl border border-border px-3 py-2 text-left text-sm text-muted transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
+                  className="rounded-lg border border-border px-3 py-2 text-left text-sm text-muted transition-colors hover:border-border-strong hover:text-foreground disabled:opacity-40"
                 >
                   {s.text}
                   {s.web && <span className="ml-1.5 text-xs text-faint">· searches the web</span>}
@@ -282,7 +282,7 @@ function Chat({ project }: { project: Project }) {
             rows={2}
             maxLength={4000}
             placeholder="Ask anything about this project…"
-            className="min-h-11 flex-1 resize-none rounded-xl border border-border-strong bg-surface-2 px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-foreground/40"
+            className="min-h-11 flex-1 resize-none rounded-lg border border-border-strong bg-surface-2 px-3 py-2.5 text-sm outline-none placeholder:text-faint focus:border-foreground/40"
           />
           <Button
             type="submit"

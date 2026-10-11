@@ -21,7 +21,7 @@ function ProjectCard({ summary }: { summary: ProjectSummary }) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="group flex flex-col rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-border-strong hover:bg-surface-2"
+      className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-strong hover:bg-surface-2"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
