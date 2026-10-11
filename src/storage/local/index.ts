@@ -98,6 +98,18 @@ export function createLocalStorage(db: LocalDb = new LocalDb()): Storage {
         }
       }),
 
+    clear: () =>
+      write(() =>
+        db.transaction("rw", [db.projects, db.snapshots, db.goals, db.assumptions], async () => {
+          await Promise.all([
+            db.projects.clear(),
+            db.snapshots.clear(),
+            db.goals.clear(),
+            db.assumptions.clear(),
+          ]);
+        }),
+      ),
+
     subscribe: (listener) => {
       listeners.add(listener);
       return () => listeners.delete(listener);

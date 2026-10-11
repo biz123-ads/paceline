@@ -55,6 +55,8 @@ export interface Storage {
   exportAll(): Promise<ExportBundle>;
   /** Validates the bundle and merges it in (upsert); never deletes. */
   importAll(bundle: unknown): Promise<void>;
+  /** Deletes every project and what it owns (after moving them elsewhere). */
+  clear(): Promise<void>;
   /** Called after every write, so screens can reload. Returns unsubscribe. */
   subscribe(listener: () => void): () => void;
 }

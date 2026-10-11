@@ -12,6 +12,7 @@ import { formatMoney, formatPercent, formatPeriod } from "@/lib/format";
 import { sampleProjectBundle } from "@/lib/sample-project";
 import { measureHistory } from "@/plan/measure";
 import { getStorage } from "@/storage";
+import { LocalDataClaim } from "@/components/account/LocalDataClaim";
 
 function ProjectCard({ summary }: { summary: ProjectSummary }) {
   const { project, snapshots, goal } = summary;
@@ -105,6 +106,7 @@ export function ProjectsScreen() {
           )
         }
       />
+      <LocalDataClaim />
       {state.status === "loading" && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <Skeleton className="h-52" />

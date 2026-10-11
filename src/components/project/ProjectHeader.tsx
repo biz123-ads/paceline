@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
 import { useProjectData } from "@/components/data/hooks";
 import { Button, cx } from "@/components/ui";
 import { PlusIcon } from "@/components/icons";
+import { AssistantButton } from "@/components/assistant/Assistant";
 import { useAddMonth } from "./AddMonth";
 import { KIND_LABELS, STAGE_LABELS } from "./labels";
 
@@ -15,7 +15,7 @@ const TABS = [
   { label: "Settings", segment: "/settings" },
 ] as const;
 
-export function ProjectHeader({ actions }: { actions?: ReactNode }) {
+export function ProjectHeader() {
   const pathname = usePathname();
   const state = useProjectData();
   const addMonth = useAddMonth();
@@ -41,7 +41,7 @@ export function ProjectHeader({ actions }: { actions?: ReactNode }) {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {actions}
+          <AssistantButton project={project} />
           <Button variant="primary" onClick={() => addMonth()} disabled={!project}>
             <PlusIcon /> Add month
           </Button>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { APP_NAME } from "@/config/app";
 import { useProjectSummaries } from "@/components/data/hooks";
+import { AccountCard } from "@/components/account/AccountCard";
 import { cx } from "@/components/ui";
 import {
   GridIcon,
@@ -107,24 +108,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Where the reference had "Get Pro": data is local, so remind about backups. */
-function BackupCard() {
-  return (
-    <div className="rounded-xl border border-border bg-surface p-4">
-      <p className="text-sm font-medium">Saved in this browser</p>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
-        No account yet: clearing site data erases your numbers. Keep a backup.
-      </p>
-      <Link
-        href="/settings"
-        className="mt-3 inline-flex h-8 items-center rounded-lg bg-surface-3 px-3 text-xs font-medium hover:bg-border-strong"
-      >
-        Back up data →
-      </Link>
-    </div>
-  );
-}
-
 export function Sidebar() {
   const [open, setOpen] = useState(false);
 
@@ -136,7 +119,7 @@ export function Sidebar() {
           <Brand />
         </div>
         <SidebarNav />
-        <BackupCard />
+        <AccountCard />
       </aside>
 
       {/* Mobile */}
@@ -154,8 +137,9 @@ export function Sidebar() {
           </button>
         </div>
         {open && (
-          <div className="border-t border-border px-4 py-3">
+          <div className="space-y-4 border-t border-border px-4 py-3">
             <SidebarNav onNavigate={() => setOpen(false)} />
+            <AccountCard onNavigate={() => setOpen(false)} />
           </div>
         )}
       </header>

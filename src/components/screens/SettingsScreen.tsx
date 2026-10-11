@@ -2,7 +2,7 @@
 
 import { useRef, useState, useSyncExternalStore } from "react";
 import { ZodError } from "zod";
-import { Button, Card, CardHeader, PageTitle, Segmented } from "@/components/ui";
+import { Button, ButtonLink, Card, CardHeader, PageTitle, Segmented } from "@/components/ui";
 import { DownloadIcon, UploadIcon } from "@/components/icons";
 import {
   applyThemePreference,
@@ -11,6 +11,45 @@ import {
   type ThemePreference,
 } from "@/lib/theme";
 import { getStorage } from "@/storage";
+import { signOut, useAuth } from "@/lib/auth";
+import { LocalDataClaim } from "@/components/account/LocalDataClaim";
+import { CreditsCard } from "@/components/account/CreditsCard";
+
+function AccountSection() {
+  const auth = useAuth();
+  if (auth.status === "disabled" || auth.status === "loading") return null;
+  if (auth.status === "signed-out") {
+    return (
+      <Card>
+        <CardHeader
+          title="Account"
+          hint="Sign in to keep your projects in the cloud, on every device, and to use the AI assistant."
+        />
+        <ButtonLink href="/login" variant="primary">
+          Sign in
+        </ButtonLink>
+      </Card>
+    );
+  }
+  return (
+    <>
+      <Card>
+        <CardHeader
+          title="Account"
+          hint={
+            <>
+              Signed in as <span className="text-foreground">{auth.user.email}</span>. Your projects are
+              saved in your account.
+            </>
+          }
+        />
+        <LocalDataClaim />
+        <Button onClick={() => void signOut()}>Sign out</Button>
+      </Card>
+      <CreditsCard />
+    </>
+  );
+}
 
 const THEME_OPTIONS = [
   { value: "dark", label: "Dark" },
@@ -81,11 +120,12 @@ export function SettingsScreen() {
     <>
       <PageTitle title="Settings" />
       <div className="max-w-3xl space-y-4">
+        <AccountSection />
         <AppearanceCard />
         <Card>
           <CardHeader
             title="Backup and restore"
-            hint="There are no accounts yet: your data is stored in this browser only. Clearing site data, private windows or another device will not have it. Export a backup now and then."
+            hint="A copy of all your projects as a file. Without an account your data lives only in this browser: clearing site data, a private window or another device won't have it, so export now and then."
           />
           <div className="flex flex-wrap gap-3">
             <Button variant="primary" onClick={exportData}>

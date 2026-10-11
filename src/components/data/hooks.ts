@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useParams } from "next/navigation";
 import type { Assumptions, Goal, MetricSnapshot, Project } from "@/domain";
-import { getStorage, type Storage } from "@/storage";
+import {
+  getStorage,
+  getStorageMode,
+  subscribeStorageMode,
+  type Storage,
+  type StorageMode,
+} from "@/storage";
+
+/** Local or cloud (and whose), re-rendering when the user signs in or out. */
+export function useStorageMode(): StorageMode {
+  return useSyncExternalStore(subscribeStorageMode, getStorageMode, () => "pending");
+}
 
 export type QueryState<T> =
   | { status: "loading" }
@@ -13,17 +24,21 @@ export type QueryState<T> =
 /**
  * Runs `load` against storage in the browser and runs it again after every
  * write. `key` identifies the query: change it to reload with new inputs.
+ * Signing in or out switches storage and reloads too.
  */
 export function useStorageQuery<T>(
-  key: string,
+  queryKey: string,
   load: (storage: Storage) => Promise<T>,
 ): QueryState<T> {
+  const mode = useStorageMode();
+  const key = `${mode}|${queryKey}`;
   const [state, setState] = useState<{ key: string; value: QueryState<T> }>({
     key,
     value: { status: "loading" },
   });
 
   useEffect(() => {
+    if (mode === "pending") return;
     const storage = getStorage();
     let cancelled = false;
     const run = () =>
@@ -50,7 +65,7 @@ export function useStorageQuery<T>(
   }, [key]);
 
   // A new key shows "loading" right away instead of the previous key's data.
-  return state.key === key ? state.value : { status: "loading" };
+  return state.key === key && mode !== "pending" ? state.value : { status: "loading" };
 }
 
 export interface ProjectData {
