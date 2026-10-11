@@ -88,7 +88,7 @@ describe("previewCsv", () => {
   it("reports row errors and missing required columns", () => {
     const p = previewCsv("month,mrr\n2026-09,abc\nlater,100\n2026-09,100\n");
     expect(p.missingRequired).toEqual(["payingCustomers"]);
-    expect(p.rows[0].errors).toEqual(["MRR: “abc” is not a number."]);
+    expect(p.rows[0].errors).toEqual(["Monthly revenue: “abc” is not a number."]);
     expect(p.rows[1].errors[0]).toMatch(/not a month/);
     expect(p.rows[2].errors).toEqual(["Same month as line 2."]);
   });

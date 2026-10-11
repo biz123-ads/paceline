@@ -17,27 +17,25 @@ async function audit(page: Page, where: string) {
 for (const theme of ["dark", "light"] as const) {
   test(`every screen passes WCAG AA checks (${theme})`, async ({ page }) => {
     await page.addInitScript((t) => localStorage.setItem("projectpulse:theme", t), theme);
-    await page.goto("/");
+    await page.goto("/projects");
+    await expect(page.getByText("Where is your project heading?")).toBeVisible();
     await audit(page, "empty projects");
     await loadSampleProject(page);
     await audit(page, "overview");
-    for (const tab of ["Plan", "Data", "Details"]) {
+    await page.getByRole("button", { name: "Add month" }).click();
+    await page.getByRole("button", { name: /^More details/ }).click();
+    await audit(page, "add month dialog");
+    await page.keyboard.press("Escape");
+    for (const tab of ["Data", "Settings"]) {
       await projectTab(page, tab).click();
       await expect(projectTab(page, tab)).toHaveAttribute("aria-current", "page");
       await audit(page, tab);
     }
-    await page.goto("/");
+    await page.goto("/projects");
     await audit(page, "projects");
     await page.goto("/projects/new");
-    await audit(page, "new project");
+    await audit(page, "setup");
     await page.goto("/settings");
     await audit(page, "settings");
-    await page.goto("/import");
-    await audit(page, "import");
-    for (const source of ["excel", "stripe"]) {
-      await page.goto(`/import/${source}`);
-      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      await audit(page, `import ${source}`);
-    }
   });
 }

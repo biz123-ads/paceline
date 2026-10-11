@@ -8,7 +8,6 @@ import { useProjectSummaries } from "@/components/data/hooks";
 import { cx } from "@/components/ui";
 import {
   GridIcon,
-  ImportIcon,
   LogoMark,
   MenuIcon,
   PlusIcon,
@@ -17,7 +16,7 @@ import {
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 text-foreground">
+    <Link href="/projects" className="flex items-center gap-2.5 text-foreground">
       <LogoMark />
       <span className="text-[17px] font-medium tracking-tight">{APP_NAME}</span>
     </Link>
@@ -62,7 +61,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav aria-label="Main" className="flex flex-1 flex-col gap-1">
-      <NavLink href="/" icon={<GridIcon />} active={pathname === "/"} onNavigate={onNavigate}>
+      <NavLink href="/projects" icon={<GridIcon />} active={pathname === "/projects"} onNavigate={onNavigate}>
         Projects
       </NavLink>
 
@@ -95,14 +94,6 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="mt-2 flex flex-col gap-1">
-        <NavLink
-          href="/import"
-          icon={<ImportIcon />}
-          active={pathname === "/import" || pathname.startsWith("/import/")}
-          onNavigate={onNavigate}
-        >
-          Import
-        </NavLink>
         <NavLink
           href="/settings"
           icon={<SettingsIcon />}

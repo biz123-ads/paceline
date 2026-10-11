@@ -9,17 +9,15 @@ test("no console errors across the app", async ({ page }) => {
   page.on("pageerror", (err) => errors.push(err.message));
 
   await loadSampleProject(page);
-  for (const tab of ["Plan", "Data", "Details", "Overview"]) {
+  for (const tab of ["Data", "Settings", "Overview"]) {
     await projectTab(page, tab).click();
-    await expect(page.getByRole("link", { name: tab, exact: true }).first()).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(projectTab(page, tab)).toHaveAttribute("aria-current", "page");
   }
+  await page.getByRole("button", { name: "Add month" }).click();
+  await expect(page.getByRole("dialog", { name: "Add a month" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.goto("/settings");
-  await page.goto("/import");
-  await page.goto("/import/google-sheets");
-  await expect(page.getByLabel("Into project")).toBeVisible();
   await page.goto("/projects/new");
   await page.reload();
   expect(errors).toEqual([]);
@@ -40,7 +38,7 @@ test("the light theme sticks across reloads, applied before the page paints", as
       observer.disconnect();
     }).observe(document, { childList: true, subtree: true });
   });
-  await page.goto("/");
+  await page.goto("/projects");
   const themeAtParse = await page.evaluate(
     () => (window as unknown as { themeAtBody: string | null }).themeAtBody,
   );
@@ -48,4 +46,11 @@ test("the light theme sticks across reloads, applied before the page paints", as
   await expect(page.getByRole("radio", { name: "Light" })).toHaveCount(0);
   await page.goto("/settings");
   await expect(page.getByRole("radio", { name: "Light" })).toHaveAttribute("aria-checked", "true");
+});
+
+test("a term explains itself on focus", async ({ page }) => {
+  await loadSampleProject(page);
+  const hint = page.getByRole("button", { name: "What is churn?" }).first();
+  await hint.focus();
+  await expect(page.getByRole("tooltip").filter({ hasText: "cancel in a month" }).first()).toBeVisible();
 });

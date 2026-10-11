@@ -2,21 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { useProjectData } from "@/components/data/hooks";
-import { ButtonLink, cx } from "@/components/ui";
+import { Button, cx } from "@/components/ui";
 import { PlusIcon } from "@/components/icons";
+import { useAddMonth } from "./AddMonth";
 import { KIND_LABELS, STAGE_LABELS } from "./labels";
 
 const TABS = [
   { label: "Overview", segment: "" },
-  { label: "Plan", segment: "/plan" },
   { label: "Data", segment: "/data" },
-  { label: "Details", segment: "/details" },
+  { label: "Settings", segment: "/settings" },
 ] as const;
 
-export function ProjectHeader() {
+export function ProjectHeader({ actions }: { actions?: ReactNode }) {
   const pathname = usePathname();
   const state = useProjectData();
+  const addMonth = useAddMonth();
   // "/projects/<id>/data" -> "/projects/<id>"
   const base = pathname.split("/").slice(0, 3).join("/");
   const project = state.status === "ready" ? state.data?.project : undefined;
@@ -38,9 +40,12 @@ export function ProjectHeader() {
             </p>
           )}
         </div>
-        <ButtonLink href={`${base}/data#add`} variant="primary">
-          <PlusIcon /> Add month
-        </ButtonLink>
+        <div className="flex flex-wrap items-center gap-2">
+          {actions}
+          <Button variant="primary" onClick={() => addMonth()} disabled={!project}>
+            <PlusIcon /> Add month
+          </Button>
+        </div>
       </div>
       <div className="border-b border-border">
         <nav

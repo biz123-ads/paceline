@@ -19,10 +19,10 @@ export type ImportField = (typeof IMPORT_FIELDS)[number];
 
 export const IMPORT_FIELD_LABELS: Record<ImportField, string> = {
   period: "Month",
-  mrr: "MRR",
+  mrr: "Monthly revenue",
   payingCustomers: "Paying customers",
   newCustomers: "New customers",
-  churnedCustomers: "Churned customers",
+  churnedCustomers: "Customers who left",
   costs: "Costs",
 };
 

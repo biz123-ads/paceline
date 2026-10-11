@@ -36,7 +36,7 @@ export function ProjectGate({
         <p className="mt-1 text-sm text-muted">
           It may have been deleted, or it lives in another browser.
         </p>
-        <ButtonLink href="/" className="mt-5">
+        <ButtonLink href="/projects" className="mt-5">
           Back to projects
         </ButtonLink>
       </Card>

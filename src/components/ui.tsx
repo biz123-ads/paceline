@@ -1,11 +1,5 @@
 import Link from "next/link";
-import type {
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  ReactNode,
-  SelectHTMLAttributes,
-  TextareaHTMLAttributes,
-} from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 /** Small presentational building blocks shared by every screen. */
 
@@ -203,65 +197,9 @@ export function SegmentBar({
   );
 }
 
-export function Field({
-  label,
-  hint,
-  error,
-  children,
-  className,
-}: {
-  label: ReactNode;
-  hint?: ReactNode;
-  error?: string | null;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <label className={cx("block", className)}>
-      <span className="mb-1.5 block text-xs font-medium text-muted">{label}</span>
-      {children}
-      {error ? (
-        <span className="mt-1 block text-xs text-danger">{error}</span>
-      ) : (
-        hint && <span className="mt-1 block text-xs text-faint">{hint}</span>
-      )}
-    </label>
-  );
-}
-
-const inputClass =
-  "h-9 w-full rounded-lg border border-border-strong bg-surface-2 px-3 text-sm text-foreground placeholder:text-faint outline-none transition-colors focus:border-foreground/40 aria-invalid:border-danger/70";
-
-export function TextInput({
-  className,
-  ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cx(inputClass, className)} {...props} />;
-}
-
-export function TextArea({
-  className,
-  ...props
-}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      className={cx(inputClass, "h-auto min-h-20 py-2", className)}
-      {...props}
-    />
-  );
-}
-
-export function Select({
-  className,
-  children,
-  ...props
-}: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={cx(inputClass, "pr-8", className)} {...props}>
-      {children}
-    </select>
-  );
-}
+// Form controls need hooks (ids that tie labels to inputs), so they live in
+// a client module; re-exported here so every screen imports from one place.
+export { Field, Select, TextArea, TextInput } from "./form";
 
 /** Neutral by default; "strong" for things worth reading first. */
 export function Notice({

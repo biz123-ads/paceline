@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { AddMonthProvider } from "@/components/project/AddMonth";
 import { ProjectHeader } from "@/components/project/ProjectHeader";
 
 /**
@@ -10,11 +11,11 @@ export default function ProjectLayout({
   children,
 }: LayoutProps<"/projects/[id]">) {
   return (
-    <>
-      <Suspense fallback={<div className="mb-6 h-[118px]" />}>
+    <Suspense fallback={<div className="mb-6 h-[118px]" />}>
+      <AddMonthProvider>
         <ProjectHeader />
-      </Suspense>
-      {children}
-    </>
+        {children}
+      </AddMonthProvider>
+    </Suspense>
   );
 }

@@ -1,5 +1,6 @@
-import { ProjectsScreen } from "@/components/screens/ProjectsScreen";
+import { redirect } from "next/navigation";
 
-export default function ProjectsPage() {
-  return <ProjectsScreen />;
+// Replaced by the landing page.
+export default function Home() {
+  redirect("/projects");
 }

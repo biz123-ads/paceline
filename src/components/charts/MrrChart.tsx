@@ -139,7 +139,7 @@ export function MrrChart({
       </div>
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
         <li className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-chart-actual" /> Actual MRR
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-chart-actual" /> Your months
         </li>
         {hasPlan && (
           <li className="flex items-center gap-2">

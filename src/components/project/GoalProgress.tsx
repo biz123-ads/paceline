@@ -19,7 +19,7 @@ export function GoalProgress({
     <div>
       <div className="mb-2 flex items-baseline justify-between gap-3 text-xs">
         <span className="text-muted">
-          {formatMoney(goal.targetMrr, currency)} MRR · by {formatPeriod(goal.deadline)}
+          Goal {formatMoney(goal.targetMrr, currency)}/mo · by {formatPeriod(goal.deadline)}
         </span>
         <span className="num text-accent">{formatPercent(Math.min(progress, 1), { digits: 0 })}</span>
       </div>
@@ -27,7 +27,7 @@ export function GoalProgress({
         tone="accent"
         fraction={progress}
         segments={segments}
-        label={`Progress towards ${formatMoney(goal.targetMrr, currency)} MRR`}
+        label={`Progress towards ${formatMoney(goal.targetMrr, currency)} a month`}
       />
     </div>
   );

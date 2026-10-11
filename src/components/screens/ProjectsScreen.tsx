@@ -39,7 +39,7 @@ function ProjectCard({ summary }: { summary: ProjectSummary }) {
 
       <div className="mt-5">
         <p className="text-xs text-muted">
-          MRR{latest ? ` · ${formatPeriod(latest.period)}` : ""}
+          Monthly revenue{latest ? ` · ${formatPeriod(latest.period)}` : ""}
         </p>
         <p className="num mt-1 text-2xl">
           {latest ? formatMoney(latest.mrr, project.currency) : <span className="text-faint">—</span>}
@@ -74,7 +74,7 @@ function EmptyState() {
     <Card className="flex flex-col items-center px-6 py-16 text-center">
       <p className="text-lg font-medium">Where is your project heading?</p>
       <p className="mt-2 max-w-md text-sm text-muted">
-        Add your monthly numbers, set a goal like “€10k MRR by next year”, and see
+        Add your monthly numbers, set a goal like “€10k a month by next year”, and see
         what it takes to get there: customers, churn, price, runway.
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">

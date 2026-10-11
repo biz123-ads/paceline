@@ -8,7 +8,7 @@ import {
   type Project,
 } from "@/domain";
 import { Button, Field, Select, TextArea, TextInput } from "@/components/ui";
-import { moneyInputValue, parseMoney } from "@/lib/format";
+import { ChevronDownIcon } from "@/components/icons";
 import { newId, nowIso } from "@/lib/id";
 import { CURRENCIES, KIND_LABELS, STAGE_LABELS } from "./labels";
 
@@ -23,7 +23,6 @@ interface FormValues {
   pricingSummary: string;
   targetAudience: string;
   techStack: string;
-  cashBalance: string;
   notes: string;
 }
 
@@ -39,7 +38,6 @@ function toValues(project?: Project): FormValues {
     pricingSummary: project?.pricingSummary ?? "",
     targetAudience: project?.targetAudience ?? "",
     techStack: project?.techStack.join(", ") ?? "",
-    cashBalance: moneyInputValue(project?.cashBalance || undefined),
     notes: project?.notes ?? "",
   };
 }
@@ -59,6 +57,19 @@ export function ProjectForm({
   const [values, setValues] = useState<FormValues>(() => toValues(project));
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  // Open when there is something in it already.
+  const [hasDetails] = useState(
+    () =>
+      !!project &&
+      !!(
+        project.websiteUrl ||
+        project.launchDate ||
+        project.pricingSummary ||
+        project.targetAudience ||
+        project.techStack.length ||
+        project.notes
+      ),
+  );
 
   const set =
     <K extends keyof FormValues>(key: K) =>
@@ -69,7 +80,6 @@ export function ProjectForm({
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const cash = values.cashBalance.trim() ? parseMoney(values.cashBalance) : 0;
     const website = values.websiteUrl.trim();
     const now = nowIso();
     const candidate = {
@@ -88,7 +98,8 @@ export function ProjectForm({
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      cashBalance: cash ?? -1,
+      // Edited on the project page, next to costs.
+      cashBalance: project?.cashBalance ?? 0,
       notes: values.notes.trim(),
       createdAt: project?.createdAt ?? now,
       updatedAt: now,
@@ -101,11 +112,9 @@ export function ProjectForm({
         next[key] ??=
           key === "name"
             ? "Give the project a name."
-            : key === "cashBalance"
-              ? "Enter an amount like 5000 or 5,000.50."
-              : key === "websiteUrl"
-                ? "Enter a web address like example.com."
-                : issue.message;
+            : key === "websiteUrl"
+              ? "Enter a web address like example.com."
+              : issue.message;
       }
       setErrors(next);
       return;
@@ -119,7 +128,7 @@ export function ProjectForm({
   return (
     <form onSubmit={submit} noValidate className="space-y-8">
       <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <legend className="mb-3 text-sm font-medium">Basics</legend>
+        <legend className="sr-only">Basics</legend>
         <Field label="Name" error={errors.name} className="sm:col-span-2">
           <TextInput
             value={values.name}
@@ -150,6 +159,7 @@ export function ProjectForm({
         <Field
           label="Currency"
           hint={project ? "Changing it relabels amounts; it does not convert them." : "Used for every amount in this project."}
+          className="sm:col-span-2"
         >
           <Select value={values.currency} onChange={set("currency")}>
             {CURRENCIES.map((c) => (
@@ -158,20 +168,6 @@ export function ProjectForm({
               </option>
             ))}
           </Select>
-        </Field>
-        <Field
-          label="Cash on hand"
-          hint="Optional. Used to work out your runway."
-          error={errors.cashBalance}
-        >
-          <TextInput
-            value={values.cashBalance}
-            onChange={set("cashBalance")}
-            inputMode="decimal"
-            placeholder="0"
-            className="num"
-            aria-invalid={!!errors.cashBalance}
-          />
         </Field>
         <Field label="Short description" className="sm:col-span-2">
           <TextArea
@@ -183,10 +179,13 @@ export function ProjectForm({
         </Field>
       </fieldset>
 
-      <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <legend className="mb-3 text-sm font-medium">
-          Details <span className="font-normal text-faint">· optional</span>
-        </legend>
+      <details open={hasDetails} className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm text-muted hover:text-foreground [&::-webkit-details-marker]:hidden">
+          <ChevronDownIcon className="-rotate-90 transition-transform group-open:rotate-0" />
+          More about the project <span className="text-faint">· optional</span>
+        </summary>
+      <fieldset className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <legend className="sr-only">More about the project</legend>
         <Field label="Website" error={errors.websiteUrl}>
           <TextInput
             value={values.websiteUrl}
@@ -223,6 +222,7 @@ export function ProjectForm({
           <TextArea value={values.notes} onChange={set("notes")} rows={3} />
         </Field>
       </fieldset>
+      </details>
 
       <div className="flex items-center gap-3">
         <Button type="submit" variant="primary" disabled={status === "saving"}>

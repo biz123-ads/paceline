@@ -7,18 +7,18 @@ import { ProjectGate } from "@/components/project/ProjectGate";
 import { Button, Card, CardHeader } from "@/components/ui";
 import { getStorage } from "@/storage";
 
-function Details({ data }: { data: ProjectData }) {
+function ProjectSettings({ data }: { data: ProjectData }) {
   const router = useRouter();
   const { project, snapshots } = data;
 
   async function remove() {
     const months = snapshots.length;
     const ok = window.confirm(
-      `Delete “${project.name}” with its ${months} ${months === 1 ? "month" : "months"} of data and its goal? This cannot be undone.`,
+      `Delete “${project.name}” with its ${months} ${months === 1 ? "month" : "months"} of numbers and its goal? This cannot be undone.`,
     );
     if (!ok) return;
     await getStorage().projects.remove(project.id);
-    router.push("/");
+    router.push("/projects");
   }
 
   return (
@@ -33,7 +33,7 @@ function Details({ data }: { data: ProjectData }) {
       <Card className="border-danger/25">
         <CardHeader
           title="Delete project"
-          hint="Removes the project, every month you entered and its goal from this browser."
+          hint="Removes the project, every month you entered and its goal."
         />
         <Button variant="danger" onClick={remove}>
           Delete project
@@ -43,6 +43,6 @@ function Details({ data }: { data: ProjectData }) {
   );
 }
 
-export function DetailsScreen() {
-  return <ProjectGate>{(data) => <Details data={data} />}</ProjectGate>;
+export function ProjectSettingsScreen() {
+  return <ProjectGate>{(data) => <ProjectSettings data={data} />}</ProjectGate>;
 }

@@ -147,3 +147,41 @@ export const MenuIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />
   </Icon>
 );
+
+export const CloseIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M4 4l8 8M12 4l-8 8" />
+  </Icon>
+);
+
+export const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M4 6l4 4 4-4" />
+  </Icon>
+);
+
+/** The assistant: a four-point spark. */
+export const SparkIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M8 1.5c.4 3.3 1.2 4.1 4.5 4.5-3.3.4-4.1 1.2-4.5 4.5-.4-3.3-1.2-4.1-4.5-4.5 3.3-.4 4.1-1.2 4.5-4.5zM12.5 10.5c.2 1.4.6 1.8 2 2-1.4.2-1.8.6-2 2-.2-1.4-.6-1.8-2-2 1.4-.2 1.8-.6 2-2z" />
+  </Icon>
+);
+
+export const UserIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <circle cx="8" cy="5.5" r="2.5" />
+    <path d="M3 13.5c.6-2.4 2.6-3.8 5-3.8s4.4 1.4 5 3.8" />
+  </Icon>
+);
+
+export const CloudIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M4.5 12.5a3 3 0 0 1-.4-6 4 4 0 0 1 7.7-1 3.5 3.5 0 0 1-.3 7z" />
+  </Icon>
+);
+
+export const SendIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <path d="M8 13V3M4 7l4-4 4 4" />
+  </Icon>
+);

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { AppShell } from "@/components/layout/AppShell";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
@@ -27,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <AppShell>{children}</AppShell>
+        {children}
       </body>
     </html>
   );

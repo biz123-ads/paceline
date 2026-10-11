@@ -20,6 +20,13 @@ import { getStorage } from "@/storage";
 
 const PREVIEW_ROWS = 12;
 
+/** Where each spreadsheet app hides its CSV export. */
+const SPREADSHEET_EXPORTS = [
+  { app: "Excel", path: "File → Save As → CSV UTF-8" },
+  { app: "Google Sheets", path: "File → Download → Comma-separated values" },
+  { app: "Numbers", path: "File → Export To → CSV" },
+];
+
 function downloadTemplate() {
   const url = URL.createObjectURL(new Blob([CSV_TEMPLATE], { type: "text/csv" }));
   const a = document.createElement("a");
@@ -131,8 +138,8 @@ export function CsvImport({
   return (
     <Card>
       <CardHeader
-        title="Import from CSV"
-        hint="One row per month. Export from a spreadsheet, Stripe or your bank; we match the columns."
+        title="Import from a spreadsheet"
+        hint="A CSV file with one row per month. We match the columns and show you a preview before anything is saved."
         action={
           <Button size="sm" variant="ghost" onClick={onClose}>
             Close
@@ -140,6 +147,16 @@ export function CsvImport({
         }
       />
 
+      {!preview && (
+        <ul className="mb-5 grid grid-cols-1 gap-2 text-xs text-muted sm:grid-cols-3">
+          {SPREADSHEET_EXPORTS.map((s) => (
+            <li key={s.app} className="rounded-lg border border-border px-3 py-2">
+              <span className="block text-foreground">{s.app}</span>
+              {s.path}
+            </li>
+          ))}
+        </ul>
+      )}
       {!preview && (
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="primary" onClick={() => input.current?.click()}>
@@ -187,10 +204,10 @@ export function CsvImport({
                   <tr className="text-left text-[11px] tracking-wide text-muted uppercase">
                     <th className="pb-2 font-normal">Line</th>
                     <th className="pb-2 font-normal">Month</th>
-                    <th className="pb-2 text-right font-normal">MRR</th>
+                    <th className="pb-2 text-right font-normal">Revenue</th>
                     <th className="pb-2 text-right font-normal">Customers</th>
                     <th className="pb-2 text-right font-normal">New</th>
-                    <th className="pb-2 text-right font-normal">Churned</th>
+                    <th className="pb-2 text-right font-normal">Left</th>
                     <th className="pb-2 text-right font-normal">Costs</th>
                   </tr>
                 </thead>
